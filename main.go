@@ -85,16 +85,18 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	n0 := ethersim.MakeNode()
-	n1 := n0.CreateNode(2)
-	d0 := ethersim.MakeServer(&n0, 2)
-	d1 := ethersim.MakeServer(&n0, 3)
+	n1 := n0.CreateNode(1)
+	d0 := ethersim.MakeServer(&n0, 1)
+	d1 := ethersim.MakeServer(&n0, 1)
 	d2 := ethersim.MakeServer(&n1, 1)
 	d3 := ethersim.MakeServer(&n1, 1)
+	d4 := ethersim.MakeServer(&n1, 2)
 	n0.MoveTo(300, 50)
 	n1.MoveTo(300, 300)
 	d1.MoveTo(600, 50)
 	d2.MoveTo(50, 300)
 	d3.MoveTo(600, 300)
+	d4.MoveTo(300, 400)
 	// ethersim.MakeDevice(2, n1)
 	// ethersim.MakeDevice(3, n1)
 
@@ -103,7 +105,7 @@ func main() {
 
 	ebiten.SetWindowSize(640, 480)
 	ebiten.SetWindowTitle("Hello World")
-	if err := ebiten.RunGame(&Game{prevTick: time.Now(), objs: []GameObj{&n0, &n1, &d0, &d1, &d2, &d3}}); err != nil {
+	if err := ebiten.RunGame(&Game{prevTick: time.Now(), objs: []GameObj{&n0, &n1, &d0, &d1, &d2, &d3, &d4}}); err != nil {
 		log.Fatal(err)
 	}
 

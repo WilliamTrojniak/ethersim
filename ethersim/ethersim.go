@@ -8,22 +8,22 @@ import (
 var (
 	nodeid   int = 0
 	deviceid int = 0
+	edgeid   int = 0
 )
 
 type NetworkMsg interface {
 	Valid() bool
 	Invalid()
+	Copy() NetworkMsg
 }
 
 type Network interface {
 	Update() error
 	PostUpdate() error
-	OnMsg(NetworkMsg, NetworkDevice)
-}
-
-type NetworkDevice interface {
-	OnMsg(NetworkMsg, NetworkDevice)
+	OnMsg(NetworkMsg, Network)
+	Reset()
 	Id() int
+	IncomingMsg(dest Network) bool
 }
 
 type msgdata struct {
@@ -33,15 +33,19 @@ type msgdata struct {
 }
 
 type NetworkEdge struct {
-	n1       NetworkDevice
-	n2       NetworkDevice
+	id       int
+	n1       Network
+	n2       Network
 	edge     bool
 	weight   int
 	messages []*msgdata
 }
 
-func makeNetworkEdge(n1 NetworkDevice, n2 NetworkDevice, w int) *NetworkEdge {
+func makeNetworkEdge(n1 Network, n2 Network, w int) *NetworkEdge {
+	id := edgeid
+	edgeid++
 	return &NetworkEdge{
+		id:       id,
 		n1:       n1,
 		n2:       n2,
 		edge:     false,
@@ -49,8 +53,8 @@ func makeNetworkEdge(n1 NetworkDevice, n2 NetworkDevice, w int) *NetworkEdge {
 		messages: make([]*msgdata, 0),
 	}
 }
-
-func (e *NetworkEdge) OnMsg(msg NetworkMsg, from NetworkDevice) {
+func (e *NetworkEdge) Id() int { return e.id }
+func (e *NetworkEdge) OnMsg(msg NetworkMsg, from Network) {
 	if from != e.n1 && from != e.n2 {
 		return
 	}
@@ -76,7 +80,6 @@ func (e *NetworkEdge) OnMsg(msg NetworkMsg, from NetworkDevice) {
 		dir:   dir,
 	})
 }
-
 func (e *NetworkEdge) Update() error {
 	dirs := make(map[int]int)
 	for _, msg := range e.messages {
@@ -119,14 +122,32 @@ func (e *NetworkEdge) Update() error {
 
 	return nil
 }
+func (e *NetworkEdge) PostUpdate() error { return nil }
+func (e *NetworkEdge) Reset()            {}
+func (e *NetworkEdge) IncomingMsg(dest Network) bool {
+	dir := 0
+	if dest == e.n1 {
+		dir = -1
+	} else if dest == e.n2 {
+		dir = 1
+	}
+	for _, msg := range e.messages {
+		if msg.dir == dir {
+			return true
+		}
+	}
+	if dest == e.n1 && e.n2.IncomingMsg(e) {
+		return true
+	} else if dest == e.n2 && e.n1.IncomingMsg(e) {
+		return true
+	}
 
-func (e *NetworkEdge) PostUpdate() error {
-	return nil
+	return false
 }
 
 type incMessage struct {
 	m    NetworkMsg
-	from NetworkDevice
+	from Network
 }
 
 type NetworkNode struct {
@@ -144,7 +165,7 @@ func MakeNetworkNode() *NetworkNode {
 	return n
 }
 
-func (n *NetworkNode) OnMsg(msg NetworkMsg, from NetworkDevice) {
+func (n *NetworkNode) OnMsg(msg NetworkMsg, from Network) {
 	n.incMessages = append(n.incMessages, incMessage{
 		m:    msg,
 		from: from,
@@ -174,7 +195,7 @@ func (n *NetworkNode) PostUpdate() error {
 	for _, edge := range n.edges {
 		for _, msg := range n.incMessages {
 			if edge.n1 != msg.from && edge.n2 != msg.from {
-				edge.OnMsg(msg.m, n)
+				edge.OnMsg(msg.m.Copy(), n)
 			}
 		}
 	}
@@ -182,7 +203,15 @@ func (n *NetworkNode) PostUpdate() error {
 
 	return nil
 }
-
+func (n *NetworkNode) IncomingMsg(dest Network) bool {
+	for _, edge := range n.edges {
+		if edge != dest && edge.IncomingMsg(n) {
+			return true
+		}
+	}
+	return false
+}
+func (n *NetworkNode) Reset() {}
 func (n *NetworkNode) CreateNode(weight int) *NetworkNode {
 	nn := MakeNetworkNode()
 	edge := makeNetworkEdge(n, nn, weight)
@@ -214,14 +243,19 @@ type BaseMsg struct {
 	V bool
 }
 
-func (m *BaseMsg) Valid() bool { return m.V }
-func (m *BaseMsg) Invalid()    { m.V = false }
+func (m *BaseMsg) Valid() bool      { return m.V }
+func (m *BaseMsg) Invalid()         { m.V = false }
+func (m *BaseMsg) Copy() NetworkMsg { return &BaseMsg{V: m.V} }
 
-func (d *Device) OnMsg(msg NetworkMsg, sender NetworkDevice) {
+func (d *Device) OnMsg(msg NetworkMsg, sender Network) {
 	fmt.Printf("(%v) Received msg, valid %v\n", d.id, msg.Valid())
-	d.SendPacket(&BaseMsg{V: true})
+	if !d.network.IncomingMsg(d) {
+		d.SendPacket(&BaseMsg{V: true})
+	}
 }
 
-func (d *Device) Id() int {
-	return int(d.id)
-}
+func (d *Device) Id() int                  { return d.id }
+func (d *Device) Update() error            { return nil }
+func (d *Device) PostUpdate() error        { return nil }
+func (d *Device) Reset()                   {}
+func (d *Device) IncomingMsg(Network) bool { return false }

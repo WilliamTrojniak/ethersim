@@ -77,11 +77,6 @@ type Edge struct {
 }
 
 func (e *Edge) Draw(img *ebiten.Image, prog float32) {
-	if len(e.edge.messages) > 0 {
-		e.SetColor(color.RGBA{0xFF, 0xFF, 0x00, 0xFF})
-	} else {
-		e.SetColor(color.RGBA{0x00, 0x00, 0x00, 0xFF})
-	}
 
 	vector.StrokeLine(img, float32(e.n1.Pos().X), float32(e.n1.Pos().Y),
 		float32(e.n2.Pos().X), float32(e.n2.Pos().Y), 4, e.c, true)
@@ -152,6 +147,6 @@ type Composite struct {
 }
 
 func (c *Composite) Draw(img *ebiten.Image, prog float32) {
-	c.Graphic.Draw(img, prog)
 	c.secondary.Draw(img, prog)
+	c.Graphic.Draw(img, prog)
 }

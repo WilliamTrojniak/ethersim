@@ -19,6 +19,15 @@ type Server struct {
 
 func (s *Server) Update() error     { return nil }
 func (s *Server) PostUpdate() error { return nil }
+func (s *Server) Draw(img *ebiten.Image, prog float32) {
+	if s.network.IncomingMsg(s.Device) {
+		s.SetColor(color.Black)
+	} else {
+		s.SetColor(color.RGBA{0xA9, 0xAF, 0xD1, 0xFF})
+	}
+
+	s.Graphic.Draw(img, prog)
+}
 
 func (s *Server) OnEvent(e Event) bool {
 	switch e := e.(type) {
@@ -88,8 +97,8 @@ func MakeNode() Node {
 		MakeNetworkNode(),
 		&Circle{
 			pos: Vec2[int]{50, 50},
-			R:   8,
-			c:   color.RGBA{0xAA, 0x88, 0x88, 0xFF},
+			R:   4,
+			c:   color.RGBA{0x00, 0x00, 0x00, 0xFF},
 		},
 	}
 }
@@ -103,8 +112,8 @@ func (n *Node) CreateNode(w int) Node {
 	out.Graphic = &Composite{
 		Graphic: &Circle{
 			pos: Vec2[int]{n.Pos().X + 64, 50},
-			R:   8,
-			c:   color.RGBA{0xFF, 0x00, 0x00, 0xFF},
+			R:   4,
+			c:   color.RGBA{0x00, 0x00, 0x00, 0xFF},
 		},
 		secondary: &Edge{
 			n1:   n,
