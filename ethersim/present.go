@@ -79,11 +79,6 @@ type Node struct {
 	Graphic
 }
 
-func (n *Node) Update() error {
-	return n.NetworkNode.Update()
-
-}
-
 func (n *Node) Draw(img *ebiten.Image, prog float32) {
 	n.Graphic.Draw(img, prog)
 }
@@ -92,9 +87,9 @@ func (n *Node) OnEvent(e Event) bool {
 	return false
 }
 
-func MakeNode() Node {
+func MakeNode(s *Simulation) Node {
 	return Node{
-		MakeNetworkNode(),
+		MakeNetworkNode(s),
 		&Circle{
 			pos: Vec2[int]{50, 50},
 			R:   4,

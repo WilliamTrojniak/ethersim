@@ -16,8 +16,6 @@ const (
 )
 
 type GameObj interface {
-	Update() error
-	PostUpdate() error
 	Draw(img *ebiten.Image, prog float32)
 	OnEvent(ethersim.Event) bool
 }
@@ -25,6 +23,7 @@ type GameObj interface {
 type Game struct {
 	prevTick time.Time
 	objs     []GameObj
+	sim      *ethersim.Simulation
 }
 
 func (g *Game) OnEvent(event ethersim.Event) {
@@ -54,15 +53,7 @@ func (g *Game) Update() error {
 		return nil
 	}
 	g.prevTick = t
-	fmt.Printf("-------------tick-------------\n")
-
-	for _, obj := range g.objs {
-		obj.Update()
-	}
-
-	for _, obj := range g.objs {
-		obj.PostUpdate()
-	}
+	g.sim.Tick()
 
 	return nil
 }
@@ -84,12 +75,13 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func main() {
-	n0 := ethersim.MakeNode()
-	n1 := n0.CreateNode(1)
-	d0 := ethersim.MakeServer(&n0, 1)
-	d1 := ethersim.MakeServer(&n0, 1)
-	d2 := ethersim.MakeServer(&n1, 1)
-	d3 := ethersim.MakeServer(&n1, 1)
+	sim := ethersim.MakeSimulation()
+	n0 := ethersim.MakeNode(sim)
+	n1 := n0.CreateNode(4)
+	d0 := ethersim.MakeServer(&n0, 2)
+	d1 := ethersim.MakeServer(&n0, 2)
+	d2 := ethersim.MakeServer(&n1, 2)
+	d3 := ethersim.MakeServer(&n1, 2)
 	d4 := ethersim.MakeServer(&n1, 2)
 	n0.MoveTo(300, 50)
 	n1.MoveTo(300, 300)
@@ -100,12 +92,12 @@ func main() {
 	// ethersim.MakeDevice(2, n1)
 	// ethersim.MakeDevice(3, n1)
 
-	d0.SendPacket(&ethersim.BaseMsg{V: true})
-	// d1.SendPacket(&ethersim.BaseMsg{V: false})
+	d0.QueueMessage(&ethersim.BaseMsg{V: true})
+	d1.QueueMessage(&ethersim.BaseMsg{V: false})
 
 	ebiten.SetWindowSize(640, 480)
 	ebiten.SetWindowTitle("Hello World")
-	if err := ebiten.RunGame(&Game{prevTick: time.Now(), objs: []GameObj{&n0, &n1, &d0, &d1, &d2, &d3, &d4}}); err != nil {
+	if err := ebiten.RunGame(&Game{sim: sim, prevTick: time.Now(), objs: []GameObj{&n0, &n1, &d0, &d1, &d2, &d3, &d4}}); err != nil {
 		log.Fatal(err)
 	}
 

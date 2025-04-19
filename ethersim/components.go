@@ -32,7 +32,7 @@ func (r *Rect) MoveTo(x, y int) {
 }
 
 func (r *Rect) Draw(img *ebiten.Image, prog float32) {
-	vector.DrawFilledRect(img, float32(r.pos.X-r.W/2), float32(r.pos.Y-r.H/2), float32(r.W), float32(r.H), r.c, false)
+	vector.DrawFilledRect(img, float32(r.pos.X-r.W/2), float32(r.pos.Y-r.H/2), float32(r.W), float32(r.H), r.c, true)
 }
 
 func (r *Rect) In(x, y int) bool {
