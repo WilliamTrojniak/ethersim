@@ -28,9 +28,6 @@ func (d *Device) Id() int           { return d.id }
 func (d *Device) TickFalling() bool { return true }
 func (d *Device) Tick() {
 	if len(d.queuedMessages) > 0 && !d.network.IncomingMsg(d) {
-		// TODO: Is there a way where simultaneous checks (on the same tick)
-		// both return the same value
-		// Right now, one device will always "win" and no messages will ever conflict
 		msg := d.queuedMessages[0]
 		d.queuedMessages = d.queuedMessages[1:]
 		d.network.OnMsg(msg, d)
