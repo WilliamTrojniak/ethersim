@@ -1,4 +1,4 @@
-package ethersim
+package ethergame
 
 import "github.com/hajimehoshi/ebiten/v2"
 

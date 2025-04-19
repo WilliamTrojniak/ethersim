@@ -8,6 +8,10 @@ type msgdata struct {
 	dir   int // 1 or -1
 }
 
+func (m *msgdata) Msg() NetworkMsg { return m.msg }
+func (m *msgdata) Stage() int      { return m.stage }
+func (m *msgdata) Dir() int        { return m.dir }
+
 type NetworkEdge struct {
 	id       int
 	n1       Network
@@ -129,3 +133,6 @@ func (e *NetworkEdge) IncomingMsg(dest Network) bool {
 
 	return false
 }
+
+func (e *NetworkEdge) Weight() int          { return e.weight }
+func (e *NetworkEdge) Messages() []*msgdata { return e.messages }

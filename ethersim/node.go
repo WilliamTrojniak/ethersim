@@ -25,12 +25,12 @@ func MakeNetworkNode(s *Simulation) *NetworkNode {
 	return n
 }
 
-func (n *NetworkNode) CreateNode(weight int) *NetworkNode {
+func (n *NetworkNode) CreateNode(weight int) (*NetworkNode, *NetworkEdge) {
 	nn := MakeNetworkNode(n.sim)
 	edge := makeNetworkEdge(n.sim, n, nn, weight)
 	n.edges = append(n.edges, edge)
 	nn.edges = append(nn.edges, edge)
-	return nn
+	return nn, edge
 }
 
 func (n *NetworkNode) Id() int { return n.id }
