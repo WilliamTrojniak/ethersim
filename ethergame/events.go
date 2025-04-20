@@ -16,3 +16,7 @@ type MouseReleaseEvent struct {
 type MouseMoveEvent struct {
 	X, Y int
 }
+
+type KeyJustPressedEvent struct {
+	Key ebiten.Key
+}

@@ -64,7 +64,7 @@ func (n *NetworkNode) OnMsg(msg NetworkMsg, from Network) {
 }
 
 // Valid during both rising and falling ticks
-func (n *NetworkNode) IncomingMsg(dest Network) bool {
+func (n *NetworkNode) incomingMsg(dest Network) bool {
 	for _, msg := range n.incMessages {
 		if msg.from != dest {
 			return true
@@ -72,7 +72,7 @@ func (n *NetworkNode) IncomingMsg(dest Network) bool {
 	}
 
 	for _, edge := range n.edges {
-		if edge != dest && edge.IncomingMsg(n) {
+		if edge != dest && edge.incomingMsg(n) {
 			return true
 		}
 	}

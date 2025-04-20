@@ -27,7 +27,7 @@ func (n *NetworkNode) CreateDevice(weight int) (*NetworkDevice, *NetworkEdge) {
 func (d *NetworkDevice) Id() int           { return d.id }
 func (d *NetworkDevice) TickFalling() bool { return true }
 func (d *NetworkDevice) Tick() {
-	if len(d.queuedMessages) > 0 && !d.network.IncomingMsg(d) {
+	if len(d.queuedMessages) > 0 && !d.network.incomingMsg(d) {
 		msg := d.queuedMessages[0]
 		d.queuedMessages = d.queuedMessages[1:]
 		d.network.OnMsg(msg, d)
@@ -40,7 +40,8 @@ func (d *NetworkDevice) OnMsg(msg NetworkMsg, sender Network) {
 	d.QueueMessage(&BaseMsg{V: true})
 }
 
-func (d *NetworkDevice) IncomingMsg(Network) bool { return false }
+func (d *NetworkDevice) incomingMsg(Network) bool { return false }
+func (d *NetworkDevice) IncomingMsg() bool        { return d.network.incomingMsg(d) }
 func (d *NetworkDevice) QueueMessage(msg NetworkMsg) {
 	if len(d.queuedMessages) < 10 {
 		d.queuedMessages = append(d.queuedMessages, msg)

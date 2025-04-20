@@ -10,17 +10,31 @@ import (
 type Device struct {
 	*ethersim.NetworkDevice
 	Graphic
-	clicked bool
+	clicked  bool
+	selected bool
 }
 
-func (s *Device) Update() error     { return nil }
-func (s *Device) PostUpdate() error { return nil }
+func (s *Device) Draw(screen *ebiten.Image, prog float32) {
+	if s.selected {
+		s.Graphic.SetColor(color.RGBA{0x00, 0xFF, 0x00, 0xFF})
+	} else if s.NetworkDevice.IncomingMsg() {
+		s.Graphic.SetColor(color.RGBA{0xFF, 0x00, 0x00, 0xFF})
+	} else {
+		s.Graphic.SetColor(color.RGBA{0x00, 0x00, 0x00, 0xFF})
+	}
+
+	s.Graphic.Draw(screen, prog)
+}
+
 func (s *Device) OnEvent(e Event) bool {
 	switch e := e.(type) {
 	case MouseClickEvent:
 		if s.In(e.X, e.Y) && e.Button == ebiten.MouseButtonLeft {
 			s.clicked = true
-			return true
+			s.selected = true
+			return false
+		} else {
+			s.selected = false
 		}
 		break
 	case MouseMoveEvent:
@@ -38,24 +52,19 @@ func (s *Device) OnEvent(e Event) bool {
 	return false
 }
 
-func MakeDevice(n *Node, w int) *Device {
-	d := &Device{}
+func MakeDevice(n *Node, w int) (*Device, *Edge) {
 	simDevice, simEdge := n.CreateDevice(w)
-	d.NetworkDevice = simDevice
-
-	d.Graphic = &Composite{
+	d := &Device{
+		NetworkDevice: simDevice,
 		Graphic: &Rect{
 			pos: Vec2[int]{50, 50},
 			W:   64,
 			H:   64,
 			c:   color.RGBA{0xFF, 0x00, 0x00, 0xFF},
 		},
-		secondary: &Edge{
-			n1:   n,
-			n2:   d,
-			edge: simEdge,
-			c:    color.Black,
-		},
+		clicked: false,
 	}
-	return d
+	e := makeEdge(n, d, simEdge)
+
+	return d, e
 }

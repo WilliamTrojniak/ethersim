@@ -15,6 +15,15 @@ type Edge struct {
 	c    color.Color
 }
 
+func makeEdge(n1 Graphic, n2 Graphic, edge *ethersim.NetworkEdge) *Edge {
+	return &Edge{
+		n1:   n1,
+		n2:   n2,
+		edge: edge,
+		c:    color.Black,
+	}
+}
+
 func (e *Edge) Draw(img *ebiten.Image, prog float32) {
 
 	vector.StrokeLine(img, float32(e.n1.Pos().X), float32(e.n1.Pos().Y),
@@ -76,6 +85,6 @@ func (e *Edge) Pos() Vec2[int] {
 	p.Y = (e.n1.Pos().Y + e.n2.Pos().Y) / 2
 	return p
 }
-func (e *Edge) In(x, y int) bool         { return false } // not selectable
-func (e *Edge) MoveTo(x, y int)          {}               // no-op
+
 func (e *Edge) SetColor(col color.Color) { e.c = col }
+func (e *Edge) OnEvent(msg Event) bool   { return false }

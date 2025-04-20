@@ -16,7 +16,7 @@ type NetworkComponent interface {
 type Network interface {
 	OnMsg(msg NetworkMsg, sender Network)
 	Id() int
-	IncomingMsg(dest Network) bool
+	incomingMsg(dest Network) bool
 }
 
 type BaseMsg struct {

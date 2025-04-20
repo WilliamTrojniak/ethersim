@@ -124,10 +124,10 @@ func (e *NetworkEdge) OnMsg(msg NetworkMsg, from Network) {
 }
 
 // Valid during rising and falling of tick
-func (e *NetworkEdge) IncomingMsg(dest Network) bool {
-	if dest == e.n1 && (e.incn1 || e.n2.IncomingMsg(e)) {
+func (e *NetworkEdge) incomingMsg(dest Network) bool {
+	if dest == e.n1 && (e.incn1 || e.n2.incomingMsg(e)) {
 		return true
-	} else if dest == e.n2 && (e.incn2 || e.n1.IncomingMsg(e)) {
+	} else if dest == e.n2 && (e.incn2 || e.n1.incomingMsg(e)) {
 		return true
 	}
 

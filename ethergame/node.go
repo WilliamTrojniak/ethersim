@@ -4,43 +4,57 @@ import (
 	"image/color"
 
 	"github.com/WilliamTrojniak/ethersim/ethersim"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type Node struct {
 	*ethersim.NetworkNode
 	Graphic
+	clicked bool
 }
 
-func (n *Node) OnEvent(e Event) bool { return false }
+func (n *Node) OnEvent(e Event) bool {
+	switch e := e.(type) {
+	case MouseClickEvent:
+		if n.In(e.X, e.Y) && e.Button == ebiten.MouseButtonLeft {
+			n.clicked = true
+			return true
+		}
+		break
+	case MouseMoveEvent:
+		if n.clicked {
+			n.MoveTo(e.X, e.Y)
+			return false
+		}
+		break
+	case MouseReleaseEvent:
+		prev := n.clicked
+		n.clicked = false
+		return prev
+	}
 
-func MakeNode(s *ethersim.Simulation) *Node {
+	return false
+}
+
+func makeNode(n *ethersim.NetworkNode) *Node {
 	return &Node{
-		NetworkNode: ethersim.MakeNetworkNode(s),
+		NetworkNode: n,
 		Graphic: &Circle{
 			pos: Vec2[int]{50, 50},
-			R:   4,
-			c:   color.RGBA{0x00, 0x00, 0x00, 0xFF},
+			R:   8,
+			c:   color.Black,
 		},
+		clicked: false,
 	}
 }
 
-func (n *Node) CreateNode(w int) *Node {
-	nn, edge := n.NetworkNode.CreateNode(w)
+func MakeNode(s *ethersim.Simulation) *Node {
+	return makeNode(ethersim.MakeNetworkNode(s))
+}
 
-	out := &Node{}
-	out.NetworkNode = nn
-	out.Graphic = &Composite{
-		Graphic: &Circle{
-			pos: Vec2[int]{n.Pos().X + 64, 50},
-			R:   4,
-			c:   color.RGBA{0x00, 0x00, 0x00, 0xFF},
-		},
-		secondary: &Edge{
-			n1:   n,
-			n2:   out,
-			edge: edge,
-			c:    color.Black,
-		},
-	}
-	return out
+func (n *Node) CreateNode(w int) (*Node, *Edge) {
+	simNode, simEdge := n.NetworkNode.CreateNode(w)
+	nn := makeNode(simNode)
+	e := makeEdge(n, nn, simEdge)
+	return nn, e
 }
