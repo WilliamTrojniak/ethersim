@@ -50,8 +50,8 @@ func (s *Device) OnEvent(e Event) bool {
 	return false
 }
 
-func MakeDevice(n *Node, w int) (*Device, *Edge) {
-	simDevice, simEdge := n.CreateDevice(w)
+func (n *Node) CreateDevice(w int) *Device {
+	simDevice, simEdge := n.NetworkNode.CreateDevice(w)
 	d := &Device{
 		NetworkDevice: simDevice,
 		Graphic: &Rect{
@@ -62,7 +62,9 @@ func MakeDevice(n *Node, w int) (*Device, *Edge) {
 		},
 		clicked: false,
 	}
-	e := makeEdge(n, d, simEdge)
+	n.game.makeEdge(n, d, simEdge)
+	n.game.devices = append(n.game.devices, d)
+	n.game.objs = append(n.game.objs, d)
 
-	return d, e
+	return d
 }

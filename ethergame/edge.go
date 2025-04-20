@@ -15,13 +15,16 @@ type Edge struct {
 	c    color.Color
 }
 
-func makeEdge(n1 Graphic, n2 Graphic, edge *ethersim.NetworkEdge) *Edge {
-	return &Edge{
+func (g *Game) makeEdge(n1 Graphic, n2 Graphic, edge *ethersim.NetworkEdge) *Edge {
+	e := &Edge{
 		n1:   n1,
 		n2:   n2,
 		edge: edge,
 		c:    ColorDark,
 	}
+	g.edges = append(g.edges, e)
+	g.objs = append(g.objs, e)
+	return e
 }
 
 func (e *Edge) Draw(img *ebiten.Image, prog float32) {
