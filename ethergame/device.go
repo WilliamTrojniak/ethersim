@@ -1,8 +1,6 @@
 package ethergame
 
 import (
-	"image/color"
-
 	"github.com/WilliamTrojniak/ethersim/ethersim"
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -16,11 +14,11 @@ type Device struct {
 
 func (s *Device) Draw(screen *ebiten.Image, prog float32) {
 	if s.selected {
-		s.Graphic.SetColor(color.RGBA{0x00, 0xFF, 0x00, 0xFF})
+		s.Graphic.SetColor(ColorYellow)
 	} else if s.NetworkDevice.IncomingMsg() {
-		s.Graphic.SetColor(color.RGBA{0xFF, 0x00, 0x00, 0xFF})
+		s.Graphic.SetColor(ColorPurple)
 	} else {
-		s.Graphic.SetColor(color.RGBA{0x00, 0x00, 0x00, 0xFF})
+		s.Graphic.SetColor(ColorPurple)
 	}
 
 	s.Graphic.Draw(screen, prog)
@@ -60,7 +58,7 @@ func MakeDevice(n *Node, w int) (*Device, *Edge) {
 			pos: Vec2[int]{50, 50},
 			W:   64,
 			H:   64,
-			c:   color.RGBA{0xFF, 0x00, 0x00, 0xFF},
+			c:   ColorDark,
 		},
 		clicked: false,
 	}

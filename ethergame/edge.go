@@ -20,7 +20,7 @@ func makeEdge(n1 Graphic, n2 Graphic, edge *ethersim.NetworkEdge) *Edge {
 		n1:   n1,
 		n2:   n2,
 		edge: edge,
-		c:    color.Black,
+		c:    ColorDark,
 	}
 }
 
@@ -62,9 +62,10 @@ func (e *Edge) Draw(img *ebiten.Image, prog float32) {
 	for _, msg := range e.edge.Messages() {
 		tickprog := float32(msg.Stage()) / float32(e.edge.Weight())
 		totalprog := tickprog + w*float32(msg.Dir())
-		col := color.RGBA{0, 0, 0, 0xFF}
+		var col color.Color
+		col = ColorDark
 		if !msg.Msg().Valid() {
-			col = color.RGBA{0xFF, 0, 0, 0xFF}
+			col = ColorYellow
 		}
 
 		c := Circle{

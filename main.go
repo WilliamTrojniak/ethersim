@@ -77,7 +77,7 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0xFF, 0xFF, 0x00, 0xFF})
+	screen.Fill(color.White)
 	n := time.Now()
 	deltaT := n.Sub(g.prevTick)
 	if !g.paused {

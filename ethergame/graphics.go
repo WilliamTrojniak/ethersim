@@ -15,6 +15,13 @@ type Graphic interface {
 	SetColor(c color.Color)
 }
 
+var (
+	ColorDark   color.Color = color.RGBA{0x2D, 0x27, 0x27, 0xFF}
+	ColorGrey   color.Color = color.RGBA{0x41, 0x35, 0x43, 0xFF}
+	ColorPurple color.Color = color.RGBA{0x8f, 0x43, 0xee, 0xFF}
+	ColorYellow color.Color = color.RGBA{0xf0, 0xeb, 0x8d, 0xFF}
+)
+
 type Rect struct {
 	pos Vec2[int]
 	W   int
@@ -32,7 +39,10 @@ func (r *Rect) MoveTo(x, y int) {
 }
 
 func (r *Rect) Draw(img *ebiten.Image, prog float32) {
-	vector.DrawFilledRect(img, float32(r.pos.X-r.W/2), float32(r.pos.Y-r.H/2), float32(r.W), float32(r.H), r.c, true)
+	x := float32(r.pos.X - r.W/2)
+	y := float32(r.pos.Y - r.H/2)
+	vector.DrawFilledRect(img, x, y, float32(r.W), float32(r.H), r.c, true)
+	vector.StrokeRect(img, x, y, float32(r.W), float32(r.H), 2, color.Black, true)
 }
 
 func (r *Rect) In(x, y int) bool {
