@@ -14,11 +14,11 @@ type Device struct {
 
 func (s *Device) Draw(screen *ebiten.Image, prog float32) {
 	if s.selected {
-		s.Graphic.SetColor(ColorYellow)
+		s.Graphic.SetColor(ColorTeal)
 	} else if s.NetworkDevice.IncomingMsg() {
-		s.Graphic.SetColor(ColorPurple)
+		s.Graphic.SetColor(ColorSalmon)
 	} else {
-		s.Graphic.SetColor(ColorPurple)
+		s.Graphic.SetColor(ColorNavy)
 	}
 
 	s.Graphic.Draw(screen, prog)
@@ -45,6 +45,15 @@ func (s *Device) OnEvent(e Event) bool {
 		prev := s.clicked
 		s.clicked = false
 		return prev
+	case KeyJustPressedEvent:
+		if !s.selected {
+			return false
+		}
+		switch e.Key {
+		case ebiten.KeyM:
+			s.QueueMessage(&ethersim.BaseMsg{V: true})
+			return true
+		}
 	}
 
 	return false
@@ -54,11 +63,11 @@ func (n *Node) CreateDevice(w int) *Device {
 	simDevice, simEdge := n.NetworkNode.CreateDevice(w)
 	d := &Device{
 		NetworkDevice: simDevice,
-		Graphic: &Rect{
-			pos: Vec2[int]{50, 50},
-			W:   64,
-			H:   64,
-			c:   ColorDark,
+		Graphic: &Circle{
+			pos:    Vec2[int]{50, 50},
+			R:      32,
+			c:      ColorDark,
+			border: true,
 		},
 		clicked: false,
 	}

@@ -20,6 +20,12 @@ var (
 	ColorGrey   color.Color = color.RGBA{0x41, 0x35, 0x43, 0xFF}
 	ColorPurple color.Color = color.RGBA{0x8f, 0x43, 0xee, 0xFF}
 	ColorYellow color.Color = color.RGBA{0xf0, 0xeb, 0x8d, 0xFF}
+
+	// Vintage Color Palette
+	ColorMaroon color.Color = color.RGBA{0x8b, 0x1e, 0x3f, 0xFF}
+	ColorSalmon color.Color = color.RGBA{0xef, 0x76, 0x7a, 0xFF}
+	ColorTeal   color.Color = color.RGBA{0x49, 0xba, 0xaa, 0xFF}
+	ColorNavy   color.Color = color.RGBA{0x45, 0x69, 0x90, 0xFF}
 )
 
 type Rect struct {
@@ -56,9 +62,10 @@ func (r *Rect) SetColor(c color.Color) {
 }
 
 type Circle struct {
-	pos Vec2[int]
-	R   float32
-	c   color.Color
+	pos    Vec2[int]
+	R      float32
+	border bool
+	c      color.Color
 }
 
 func (c *Circle) Pos() Vec2[int] { return c.pos }
@@ -67,7 +74,12 @@ func (c *Circle) MoveTo(x, y int) {
 	c.pos.Y = y
 }
 func (c *Circle) Draw(img *ebiten.Image, prog float32) {
-	vector.DrawFilledCircle(img, float32(c.pos.X), float32(c.pos.Y), c.R, c.c, true)
+	x := float32(c.pos.X)
+	y := float32(c.pos.Y)
+	vector.DrawFilledCircle(img, x, y, c.R, c.c, true)
+	if c.border {
+		vector.StrokeCircle(img, x, y, c.R, 2, color.Black, true)
+	}
 }
 func (c *Circle) In(x, y int) bool {
 	dx := x - c.pos.X

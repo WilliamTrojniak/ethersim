@@ -15,6 +15,16 @@ type Node struct {
 	selected bool
 }
 
+func (n *Node) Draw(screen *ebiten.Image, prog float32) {
+	if n.selected {
+		n.SetColor(ColorTeal)
+	} else {
+		n.SetColor(color.Black)
+	}
+
+	n.Graphic.Draw(screen, prog)
+}
+
 func (n *Node) OnEvent(e Event) bool {
 	switch e := e.(type) {
 	case MouseClickEvent:
@@ -41,10 +51,12 @@ func (n *Node) OnEvent(e Event) bool {
 		}
 		switch e.Key {
 		case ebiten.KeyN:
-			n.CreateNode(n.game.activeWeight)
+			nn := n.CreateNode(n.game.activeWeight)
+			nn.clicked = true
 			break
 		case ebiten.KeyD:
-			n.CreateDevice(n.game.activeWeight)
+			d := n.CreateDevice(n.game.activeWeight)
+			d.clicked = true
 			break
 		}
 		return false
@@ -58,9 +70,10 @@ func (g *Game) makeNode(n *ethersim.NetworkNode) *Node {
 		game:        g,
 		NetworkNode: n,
 		Graphic: &Circle{
-			pos: Vec2[int]{50, 50},
-			R:   8,
-			c:   color.Black,
+			pos:    Vec2[int]{50, 50},
+			R:      8,
+			c:      color.Black,
+			border: true,
 		},
 		clicked:  false,
 		selected: false,

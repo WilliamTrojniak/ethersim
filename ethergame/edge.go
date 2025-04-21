@@ -68,7 +68,7 @@ func (e *Edge) Draw(img *ebiten.Image, prog float32) {
 		var col color.Color
 		col = ColorDark
 		if !msg.Msg().Valid() {
-			col = ColorYellow
+			col = ColorMaroon
 		}
 
 		c := Circle{
