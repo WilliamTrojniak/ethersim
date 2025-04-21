@@ -91,3 +91,7 @@ func (n *NetworkNode) isResetting(from Network) bool {
 	}
 	return false
 }
+
+func (n *NetworkNode) IsResetting() bool {
+	return n.isResetting(nil)
+}

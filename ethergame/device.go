@@ -16,7 +16,7 @@ func (s *Device) Draw(screen *ebiten.Image, prog float32) {
 	if s.selected {
 		s.Graphic.SetColor(ColorTeal)
 	} else if s.NetworkDevice.IncomingMsg() {
-		s.Graphic.SetColor(ColorSalmon)
+		s.Graphic.SetColor(ColorFadedNavy)
 	} else {
 		s.Graphic.SetColor(ColorNavy)
 	}

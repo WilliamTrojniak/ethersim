@@ -18,6 +18,8 @@ type Node struct {
 func (n *Node) Draw(screen *ebiten.Image, prog float32) {
 	if n.selected {
 		n.SetColor(ColorTeal)
+	} else if n.IsResetting() {
+		n.SetColor(ColorSalmon)
 	} else {
 		n.SetColor(color.Black)
 	}
