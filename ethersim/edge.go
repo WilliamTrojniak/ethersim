@@ -136,3 +136,18 @@ func (e *NetworkEdge) incomingMsg(dest Network) bool {
 
 func (e *NetworkEdge) Weight() int          { return e.weight }
 func (e *NetworkEdge) Messages() []*msgdata { return e.messages }
+func (e *NetworkEdge) isResetting(from Network) bool {
+	if from == e.n1 {
+		return e.n2.isResetting(e)
+	}
+
+	if from == e.n2 {
+		return e.n1.isResetting(e)
+	}
+
+	return false
+}
+
+func (e *NetworkEdge) IsResetting() bool {
+	return e.n1.isResetting(e) || e.n2.isResetting(e)
+}

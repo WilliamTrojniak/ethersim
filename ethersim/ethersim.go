@@ -17,6 +17,7 @@ type Network interface {
 	OnMsg(msg NetworkMsg, sender Network)
 	Id() int
 	incomingMsg(dest Network) bool
+	isResetting(from Network) bool
 }
 
 type BaseMsg struct {

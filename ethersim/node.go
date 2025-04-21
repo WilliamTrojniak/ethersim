@@ -12,13 +12,15 @@ type NetworkNode struct {
 	id          int
 	edges       []*NetworkEdge
 	incMessages []incMessage
+	resetting   int
 }
 
 func MakeNetworkNode(s *Simulation) *NetworkNode {
 	n := &NetworkNode{
-		sim:   s,
-		id:    nodeid,
-		edges: make([]*NetworkEdge, 0),
+		sim:       s,
+		id:        nodeid,
+		edges:     make([]*NetworkEdge, 0),
+		resetting: 0,
 	}
 	s.register(n)
 	nodeid++
@@ -77,5 +79,15 @@ func (n *NetworkNode) incomingMsg(dest Network) bool {
 		}
 	}
 
+	return false
+}
+
+func (n *NetworkNode) isResetting(from Network) bool {
+	for _, edge := range n.edges {
+		if edge != from && edge.isResetting(n) {
+			return true
+		}
+
+	}
 	return false
 }

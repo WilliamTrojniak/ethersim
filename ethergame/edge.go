@@ -28,6 +28,11 @@ func (g *Game) makeEdge(n1 Graphic, n2 Graphic, edge *ethersim.NetworkEdge) *Edg
 }
 
 func (e *Edge) Draw(img *ebiten.Image, prog float32) {
+	if e.edge.IsResetting() {
+		e.c = ColorSalmon
+	} else {
+		e.c = ColorDark
+	}
 
 	vector.StrokeLine(img, float32(e.n1.Pos().X), float32(e.n1.Pos().Y),
 		float32(e.n2.Pos().X), float32(e.n2.Pos().Y), 4, e.c, true)
@@ -68,7 +73,7 @@ func (e *Edge) Draw(img *ebiten.Image, prog float32) {
 		var col color.Color
 		col = ColorDark
 		if !msg.Msg().Valid() {
-			col = ColorMaroon
+			col = ColorSalmon
 		}
 
 		c := Circle{
