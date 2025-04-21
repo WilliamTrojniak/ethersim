@@ -28,8 +28,8 @@ func (s *Device) OnEvent(e Event) bool {
 	switch e := e.(type) {
 	case MouseClickEvent:
 		if s.In(e.X, e.Y) && e.Button == ebiten.MouseButtonLeft {
-			s.clicked = true
-			s.selected = true
+			s.clicked = !s.clicked
+			s.selected = !s.selected
 			return false
 		} else {
 			s.selected = false

@@ -29,8 +29,8 @@ func (n *Node) OnEvent(e Event) bool {
 	switch e := e.(type) {
 	case MouseClickEvent:
 		if n.In(e.X, e.Y) && e.Button == ebiten.MouseButtonLeft {
-			n.clicked = true
-			n.selected = true
+			n.clicked = !n.clicked
+			n.selected = !n.selected
 			return false
 		} else {
 			n.selected = false
@@ -52,11 +52,15 @@ func (n *Node) OnEvent(e Event) bool {
 		switch e.Key {
 		case ebiten.KeyN:
 			nn := n.CreateNode(n.game.activeWeight)
+			n.selected = false
 			nn.clicked = true
+			nn.selected = true
 			break
 		case ebiten.KeyD:
 			d := n.CreateDevice(n.game.activeWeight)
+			n.selected = false
 			d.clicked = true
+			d.selected = true
 			break
 		}
 		return false
