@@ -33,30 +33,40 @@ func (g *Game) OnEvent(event Event) {
 		case ebiten.KeySpace:
 			g.paused = !g.paused
 		case ebiten.Key1:
-			g.activeWeight = 10
+			g.activeWeight = 1
 		case ebiten.Key2:
-			g.activeWeight = 20
+			g.activeWeight = 2
 		case ebiten.Key3:
-			g.activeWeight = 30
+			g.activeWeight = 3
 		case ebiten.Key4:
-			g.activeWeight = 40
+			g.activeWeight = 4
 		case ebiten.Key5:
-			g.activeWeight = 50
+			g.activeWeight = 5
 		case ebiten.Key6:
-			g.activeWeight = 60
+			g.activeWeight = 6
 		case ebiten.Key7:
-			g.activeWeight = 70
+			g.activeWeight = 7
 		case ebiten.Key8:
-			g.activeWeight = 80
+			g.activeWeight = 8
 		case ebiten.Key9:
-			g.activeWeight = 90
-
+			g.activeWeight = 9
 		}
 	}
 
 	for _, obj := range g.objs {
 		if obj.OnEvent(event) {
 			break
+		}
+	}
+
+	switch e := event.(type) {
+	case KeyJustPressedEvent:
+		switch e.Key {
+		case ebiten.KeyN:
+			nn := g.MakeNode(g.sim)
+			nn.clicked = true
+			nn.selected = true
+			return
 		}
 	}
 }
@@ -128,6 +138,6 @@ func MakeGame(sim *ethersim.Simulation) *Game {
 		sim:             sim,
 		justPressedKeys: make([]ebiten.Key, 0, 10),
 		paused:          false,
-		activeWeight:    10,
+		activeWeight:    3,
 	}
 }

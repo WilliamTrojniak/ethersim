@@ -14,9 +14,9 @@ func main() {
 
 	node := game.MakeNode(sim)
 	for i := range 10 {
-		node.MoveTo(50+i*100, 50)
-		d := node.CreateDevice(10)
-		d.MoveTo(50+i*100, 150)
+		node.MoveTo(50+i*60, 50)
+		d := node.CreateDevice(3)
+		d.MoveTo(50+i*60, 100)
 
 		if i%4 == 0 {
 			d.QueueMessage(&ethersim.BaseMsg{V: true})
@@ -26,7 +26,7 @@ func main() {
 		}
 
 		if i < 9 {
-			node = node.CreateNode(10)
+			node = node.CreateNode(5)
 		}
 	}
 

@@ -57,13 +57,13 @@ func (n *Node) OnEvent(e Event) bool {
 			n.selected = false
 			nn.clicked = true
 			nn.selected = true
-			break
+			return true
 		case ebiten.KeyD:
 			d := n.CreateDevice(n.game.activeWeight)
 			n.selected = false
 			d.clicked = true
 			d.selected = true
-			break
+			return true
 		}
 		return false
 	}

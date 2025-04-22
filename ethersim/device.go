@@ -1,12 +1,11 @@
 package ethersim
 
 import (
-	"fmt"
 	"math/rand/v2"
 )
 
 var deviceid int = 0
-var numResetTicks int = 30
+var numResetTicks int = 10
 
 // Devices
 type NetworkDevice struct {
@@ -58,12 +57,10 @@ func (d *NetworkDevice) Tick() {
 
 // Expects to be called during rising edge of tick
 func (d *NetworkDevice) OnMsg(msg NetworkMsg, sender Network) {
-	fmt.Printf("(%v) Received msg, valid %v\n", d.id, msg.Valid())
 	if !msg.Valid() {
 		d.resetTicks = numResetTicks
 	}
 
-	d.randomizeTimeout()
 	d.QueueMessage(&BaseMsg{V: true})
 }
 
@@ -80,6 +77,6 @@ func (d *NetworkDevice) isResetting(from Network) bool {
 }
 
 func (d *NetworkDevice) randomizeTimeout() {
-	d.timeout = rand.IntN(30)
+	d.timeout = rand.IntN(500)
 
 }

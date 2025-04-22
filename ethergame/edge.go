@@ -82,7 +82,7 @@ func (e *Edge) Draw(img *ebiten.Image, prog float32) {
 				Y: y1 + int(totalprog*dy),
 			},
 			c: col,
-			R: 8,
+			R: 6,
 		}
 		c.Draw(img, prog)
 
