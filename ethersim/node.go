@@ -73,11 +73,11 @@ func (n *NetworkNode) incomingMsg(dest Network) bool {
 		}
 	}
 
-	for _, edge := range n.edges {
-		if edge != dest && edge.incomingMsg(n) {
-			return true
-		}
-	}
+	// for _, edge := range n.edges {
+	// 	if edge != dest && edge.incomingMsg(n) {
+	// 		return true
+	// 	}
+	// }
 
 	return false
 }
