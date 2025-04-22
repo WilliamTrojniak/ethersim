@@ -1,9 +1,12 @@
 package ethersim
 
-import "fmt"
+import (
+	"fmt"
+	"math/rand/v2"
+)
 
 var deviceid int = 0
-var numResetTicks int = 5
+var numResetTicks int = 30
 
 // Devices
 type NetworkDevice struct {
@@ -11,6 +14,7 @@ type NetworkDevice struct {
 	id             int
 	queuedMessages []NetworkMsg
 	resetTicks     int
+	timeout        int
 }
 
 func (n *NetworkNode) CreateDevice(weight int) (*NetworkDevice, *NetworkEdge) {
@@ -35,6 +39,16 @@ func (d *NetworkDevice) Tick() {
 		return
 	}
 
+	if d.network.isResetting(d) {
+		d.randomizeTimeout()
+		return
+	}
+
+	if d.timeout > 0 {
+		d.timeout--
+		return
+	}
+
 	if len(d.queuedMessages) > 0 && !d.network.incomingMsg(d) && !d.network.isResetting(d) {
 		msg := d.queuedMessages[0]
 		d.queuedMessages = d.queuedMessages[1:]
@@ -48,6 +62,9 @@ func (d *NetworkDevice) OnMsg(msg NetworkMsg, sender Network) {
 	if !msg.Valid() {
 		d.resetTicks = numResetTicks
 	}
+
+	d.randomizeTimeout()
+	d.QueueMessage(&BaseMsg{V: true})
 }
 
 func (d *NetworkDevice) incomingMsg(Network) bool { return false }
@@ -59,6 +76,10 @@ func (d *NetworkDevice) QueueMessage(msg NetworkMsg) {
 }
 
 func (d *NetworkDevice) isResetting(from Network) bool {
-
 	return d.resetTicks > 0
+}
+
+func (d *NetworkDevice) randomizeTimeout() {
+	d.timeout = rand.IntN(30)
+
 }
