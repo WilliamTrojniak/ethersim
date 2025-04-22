@@ -65,7 +65,7 @@ func (n *Node) CreateDevice(w int) *Device {
 		NetworkDevice: simDevice,
 		Graphic: &Circle{
 			pos:    Vec2[int]{50, 50},
-			R:      32,
+			R:      24,
 			c:      ColorDark,
 			border: true,
 		},

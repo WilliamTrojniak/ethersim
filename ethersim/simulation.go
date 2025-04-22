@@ -1,7 +1,5 @@
 package ethersim
 
-import "fmt"
-
 type Simulation struct {
 	components        []NetworkComponent
 	fallingComponents []NetworkComponent
@@ -14,11 +12,11 @@ func MakeSimulation() *Simulation {
 	}
 }
 func (s *Simulation) Tick() {
-	fmt.Printf("-------------tick-------------\n")
+	// fmt.Printf("-------------tick-------------\n")
 	for _, c := range s.components {
 		c.Tick()
 	}
-	fmt.Printf("-------------post-------------\n")
+	// fmt.Printf("-------------post-------------\n")
 	for _, c := range s.fallingComponents {
 		c.Tick()
 	}

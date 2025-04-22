@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	TIME_PER_TICK = 1 * time.Second
+	TIME_PER_TICK = time.Millisecond * 100
 )
 
 type Game struct {
@@ -33,23 +33,23 @@ func (g *Game) OnEvent(event Event) {
 		case ebiten.KeySpace:
 			g.paused = !g.paused
 		case ebiten.Key1:
-			g.activeWeight = 1
+			g.activeWeight = 10
 		case ebiten.Key2:
-			g.activeWeight = 2
+			g.activeWeight = 20
 		case ebiten.Key3:
-			g.activeWeight = 3
+			g.activeWeight = 30
 		case ebiten.Key4:
-			g.activeWeight = 4
+			g.activeWeight = 40
 		case ebiten.Key5:
-			g.activeWeight = 5
+			g.activeWeight = 50
 		case ebiten.Key6:
-			g.activeWeight = 6
+			g.activeWeight = 60
 		case ebiten.Key7:
-			g.activeWeight = 7
+			g.activeWeight = 70
 		case ebiten.Key8:
-			g.activeWeight = 8
+			g.activeWeight = 80
 		case ebiten.Key9:
-			g.activeWeight = 9
+			g.activeWeight = 90
 
 		}
 	}
@@ -83,7 +83,7 @@ func (g *Game) Update() error {
 		g.prevTick = t.Add(-(time.Duration(g.prog * float32(TIME_PER_TICK))))
 	}
 
-	if t.Sub(g.prevTick) <= 1*time.Second || g.paused {
+	if t.Sub(g.prevTick) <= 1*TIME_PER_TICK || g.paused {
 		return nil
 	}
 
@@ -128,6 +128,6 @@ func MakeGame(sim *ethersim.Simulation) *Game {
 		sim:             sim,
 		justPressedKeys: make([]ebiten.Key, 0, 10),
 		paused:          false,
-		activeWeight:    1,
+		activeWeight:    10,
 	}
 }

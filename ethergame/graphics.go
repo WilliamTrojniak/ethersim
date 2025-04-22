@@ -2,6 +2,7 @@ package ethergame
 
 import (
 	"image/color"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -101,4 +102,61 @@ type Composite struct {
 func (c *Composite) Draw(img *ebiten.Image, prog float32) {
 	c.secondary.Draw(img, prog)
 	c.Graphic.Draw(img, prog)
+}
+
+type Wave struct {
+	startPos  Vec2[int]
+	endPos    Vec2[int]
+	amplitude float32
+}
+
+func (w *Wave) Draw(screen *ebiten.Image, prog float32) {
+	var path vector.Path
+
+	const npoints = 2
+
+	var x, y float32 = float32(w.startPos.X), float32(w.startPos.Y)
+	var dx, dy float32 = float32(w.endPos.X) - x, float32(w.endPos.Y) - y
+
+	path.MoveTo(x, y)
+
+	calcOff := func(i, npoints float32) (offx, offy float32) {
+		if i == 0 {
+			return 0, 0
+		}
+		return 0, w.amplitude * float32(math.Sin(float64(i/npoints*2*math.Pi+prog*2*math.Pi)))
+
+	}
+
+	for i := 1; i <= npoints; i++ {
+		nx, ny := x, y
+		nx += dx / npoints
+		ny += dy / npoints
+		nnx := nx + dx/npoints
+		nny := ny + dy/npoints
+
+		offx, offy := calcOff(float32(i), npoints)
+		path.CubicTo(x, y, nx+offx, ny+offy, nnx, nny)
+		x, y = nnx, nny
+	}
+
+	var op vector.StrokeOptions
+	op.Width = 4
+	vertices, indices := path.AppendVerticesAndIndicesForStroke(nil, nil, &op)
+
+	for i := range vertices {
+		vertices[i].ColorR = 1.0
+		vertices[i].ColorG = 0.0
+		vertices[i].ColorB = 1.0
+		vertices[i].ColorA = 1.0
+	}
+
+	var drawOp ebiten.DrawTrianglesOptions
+	drawOp.FillRule = ebiten.FillRuleNonZero
+	drawOp.AntiAlias = true
+
+	srcImg := ebiten.NewImage(3, 3)
+	srcImg.Fill(color.White)
+	screen.DrawTriangles(vertices, indices, srcImg, &drawOp)
+
 }

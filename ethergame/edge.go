@@ -81,10 +81,23 @@ func (e *Edge) Draw(img *ebiten.Image, prog float32) {
 				X: x1 + int(totalprog*dx),
 				Y: y1 + int(totalprog*dy),
 			},
-			R: 8,
 			c: col,
+			R: 8,
 		}
 		c.Draw(img, prog)
+
+		// w := Wave{
+		// 	startPos: Vec2[int]{
+		// 		X: x1 + int(totalprog*dx),
+		// 		Y: y1 + int(totalprog*dy),
+		// 	},
+		// 	endPos: Vec2[int]{
+		// 		X: x1 + int((totalprog+1/float32(e.edge.Weight()))*dx),
+		// 		Y: y1 + int((totalprog+1/float32(e.edge.Weight()))*dy),
+		// 	},
+		// 	amplitude: 16,
+		// }
+		// w.Draw(img, prog)
 	}
 
 }

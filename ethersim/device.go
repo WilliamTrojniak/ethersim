@@ -47,10 +47,7 @@ func (d *NetworkDevice) OnMsg(msg NetworkMsg, sender Network) {
 	fmt.Printf("(%v) Received msg, valid %v\n", d.id, msg.Valid())
 	if !msg.Valid() {
 		d.resetTicks = numResetTicks
-		fmt.Printf("resetting: %v\n", numResetTicks)
 	}
-
-	d.QueueMessage(&BaseMsg{V: true})
 }
 
 func (d *NetworkDevice) incomingMsg(Network) bool { return false }
