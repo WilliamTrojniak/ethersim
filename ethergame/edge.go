@@ -27,6 +27,8 @@ func (g *Game) makeEdge(n1 Graphic, n2 Graphic, edge *ethersim.NetworkEdge) *Edg
 	return e
 }
 
+func (e *Edge) Update() {}
+
 func (e *Edge) Draw(img *ebiten.Image, prog float32) {
 	if e.edge.IsResetting() {
 		e.c = ColorSalmon

@@ -1,7 +1,11 @@
 package ethergame
 
 import (
+	"fmt"
+	"image/color"
+
 	"github.com/WilliamTrojniak/ethersim/ethersim"
+	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -10,6 +14,7 @@ type Device struct {
 	Graphic
 	clicked  bool
 	selected bool
+	ui       *widget.Text
 }
 
 func (s *Device) Draw(screen *ebiten.Image, prog float32) {
@@ -59,6 +64,23 @@ func (s *Device) OnEvent(e Event) bool {
 	return false
 }
 
+func (d *Device) getLabel() string {
+	return fmt.Sprintf("(D%v) Queued: %v, Timeout: %v, Factor %v", d.Id(), len(d.QueuedMessages()), d.Timeout(), d.TimeoutFactor())
+}
+
+func (d *Device) createUI() *widget.Text {
+	row := widget.NewText(widget.TextOpts.Text(
+		d.getLabel(),
+		face,
+		color.Black,
+	))
+	return row
+}
+
+func (d *Device) Update() {
+	d.ui.Label = d.getLabel()
+}
+
 func (n *Node) CreateDevice(w int) *Device {
 	simDevice, simEdge := n.NetworkNode.CreateDevice(w)
 	d := &Device{
@@ -74,6 +96,9 @@ func (n *Node) CreateDevice(w int) *Device {
 	n.game.makeEdge(n, d, simEdge)
 	n.game.devices = append(n.game.devices, d)
 	n.game.objs = append(n.game.objs, d)
+
+	d.ui = d.createUI()
+	n.game.deviceDataContainer.AddChild(d.ui)
 
 	return d
 }

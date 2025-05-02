@@ -27,6 +27,8 @@ func (n *Node) Draw(screen *ebiten.Image, prog float32) {
 	n.Graphic.Draw(screen, prog)
 }
 
+func (n *Node) Update() {}
+
 func (n *Node) OnEvent(e Event) bool {
 	switch e := e.(type) {
 	case MouseClickEvent:

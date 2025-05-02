@@ -15,6 +15,8 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 )
 
+var face, err = loadFont(18)
+
 const (
 	TIME_PER_TICK = time.Millisecond * 50
 )
@@ -31,6 +33,8 @@ type Game struct {
 	prog            float32
 	activeWeight    int
 	ui              *ebitenui.UI
+
+	deviceDataContainer *widget.Container
 }
 
 func loadFont(size float64) (text.Face, error) {
@@ -93,6 +97,9 @@ func (g *Game) OnEvent(event Event) {
 
 func (g *Game) Update() error {
 	g.ui.Update()
+	for _, obj := range g.objs {
+		obj.Update()
+	}
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
@@ -153,29 +160,17 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func (g *Game) getEbitenUI() *ebitenui.UI {
-	face, _ := loadFont(18)
 
 	root := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewAnchorLayout(widget.AnchorLayoutOpts.Padding(widget.NewInsetsSimple(16)))))
-	dataRows := widget.NewContainer(
+	deviceDataRows := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Direction(widget.DirectionVertical))),
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			VerticalPosition: widget.AnchorLayoutPositionEnd,
 		})))
 
-	root.AddChild(dataRows)
+	root.AddChild(deviceDataRows)
 
-	text := widget.NewText(widget.TextOpts.Text("Device 1:", face, color.Black),
-		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-			VerticalPosition: widget.AnchorLayoutPositionEnd,
-		})),
-	)
-	text2 := widget.NewText(widget.TextOpts.Text("Device 2:", face, color.Black),
-		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-			VerticalPosition: widget.AnchorLayoutPositionEnd,
-		})),
-	)
-	dataRows.AddChild(text, text2)
-
+	g.deviceDataContainer = deviceDataRows
 	return &ebitenui.UI{
 		Container: root,
 	}

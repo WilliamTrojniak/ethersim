@@ -87,3 +87,7 @@ func (d *NetworkDevice) randomizeTimeout(factor int) {
 	d.timeout = factor * rand.IntN(200)
 
 }
+
+func (d *NetworkDevice) QueuedMessages() []NetworkMsg { return d.queuedMessages }
+func (d *NetworkDevice) Timeout() int                 { return d.timeout }
+func (d *NetworkDevice) TimeoutFactor() int           { return d.timeoutFactor }
