@@ -1,16 +1,22 @@
 package ethergame
 
 import (
+	"bytes"
 	"image/color"
+	"log"
 	"time"
 
 	"github.com/WilliamTrojniak/ethersim/ethersim"
+	"github.com/ebitenui/ebitenui"
+	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"golang.org/x/image/font/gofont/goregular"
 )
 
 const (
-	TIME_PER_TICK = time.Millisecond * 100
+	TIME_PER_TICK = time.Millisecond * 50
 )
 
 type Game struct {
@@ -24,6 +30,20 @@ type Game struct {
 	paused          bool
 	prog            float32
 	activeWeight    int
+	ui              *ebitenui.UI
+}
+
+func loadFont(size float64) (text.Face, error) {
+	s, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+
+	return &text.GoTextFace{
+		Source: s,
+		Size:   size,
+	}, nil
 }
 
 func (g *Game) OnEvent(event Event) {
@@ -72,6 +92,8 @@ func (g *Game) OnEvent(event Event) {
 }
 
 func (g *Game) Update() error {
+	g.ui.Update()
+
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
 		g.OnEvent(MouseClickEvent{X: x, Y: y, Button: ebiten.MouseButtonLeft})
@@ -122,14 +144,46 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	for _, dev := range g.devices {
 		dev.Draw(screen, g.prog)
 	}
+
+	g.ui.Draw(screen)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return outsideWidth, outsideHeight
 }
 
+func (g *Game) getEbitenUI() *ebitenui.UI {
+	face, _ := loadFont(18)
+
+	root := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewAnchorLayout(widget.AnchorLayoutOpts.Padding(widget.NewInsetsSimple(16)))))
+	dataRows := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Direction(widget.DirectionVertical))),
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+			VerticalPosition: widget.AnchorLayoutPositionEnd,
+		})))
+
+	root.AddChild(dataRows)
+
+	text := widget.NewText(widget.TextOpts.Text("Device 1:", face, color.Black),
+		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+			VerticalPosition: widget.AnchorLayoutPositionEnd,
+		})),
+	)
+	text2 := widget.NewText(widget.TextOpts.Text("Device 2:", face, color.Black),
+		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+			VerticalPosition: widget.AnchorLayoutPositionEnd,
+		})),
+	)
+	dataRows.AddChild(text, text2)
+
+	return &ebitenui.UI{
+		Container: root,
+	}
+
+}
+
 func MakeGame(sim *ethersim.Simulation) *Game {
-	return &Game{
+	g := &Game{
 		prevTick:        time.Now(),
 		objs:            make([]GameObject, 0),
 		nodes:           make([]*Node, 0),
@@ -139,5 +193,10 @@ func MakeGame(sim *ethersim.Simulation) *Game {
 		justPressedKeys: make([]ebiten.Key, 0, 10),
 		paused:          false,
 		activeWeight:    3,
+		ui:              nil,
 	}
+
+	g.ui = g.getEbitenUI()
+
+	return g
 }

@@ -15,7 +15,7 @@ func main() {
 	node := game.MakeNode(sim)
 	for i := range 10 {
 		node.MoveTo(50+i*60, 50)
-		d := node.CreateDevice(3)
+		d := node.CreateDevice(6)
 		d.MoveTo(50+i*60, 100)
 
 		if i%4 == 0 {
@@ -26,7 +26,7 @@ func main() {
 		}
 
 		if i < 9 {
-			node = node.CreateNode(5)
+			node = node.CreateNode(6)
 		}
 	}
 

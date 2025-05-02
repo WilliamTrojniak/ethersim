@@ -5,7 +5,7 @@ import (
 )
 
 var deviceid int = 0
-var numResetTicks int = 10
+var numResetTicks int = 20
 
 // Devices
 type NetworkDevice struct {
@@ -14,6 +14,7 @@ type NetworkDevice struct {
 	queuedMessages []NetworkMsg
 	resetTicks     int
 	timeout        int
+	timeoutFactor  int
 }
 
 func (n *NetworkNode) CreateDevice(weight int) (*NetworkDevice, *NetworkEdge) {
@@ -22,6 +23,7 @@ func (n *NetworkNode) CreateDevice(weight int) (*NetworkDevice, *NetworkEdge) {
 		queuedMessages: make([]NetworkMsg, 0),
 		network:        nil,
 		resetTicks:     0,
+		timeoutFactor:  1,
 	}
 	deviceid++
 	edge := makeNetworkEdge(n.sim, n, d, weight)
@@ -39,7 +41,7 @@ func (d *NetworkDevice) Tick() {
 	}
 
 	if d.network.isResetting(d) {
-		d.randomizeTimeout()
+		d.randomizeTimeout(d.timeoutFactor)
 		return
 	}
 
@@ -58,7 +60,12 @@ func (d *NetworkDevice) Tick() {
 // Expects to be called during rising edge of tick
 func (d *NetworkDevice) OnMsg(msg NetworkMsg, sender Network) {
 	if !msg.Valid() {
+		if d.resetTicks == 0 {
+			d.timeoutFactor *= 2
+		}
 		d.resetTicks = numResetTicks
+	} else {
+		d.randomizeTimeout(d.timeoutFactor)
 	}
 
 	d.QueueMessage(&BaseMsg{V: true})
@@ -76,7 +83,7 @@ func (d *NetworkDevice) isResetting(from Network) bool {
 	return d.resetTicks > 0
 }
 
-func (d *NetworkDevice) randomizeTimeout() {
-	d.timeout = rand.IntN(500)
+func (d *NetworkDevice) randomizeTimeout(factor int) {
+	d.timeout = factor * rand.IntN(200)
 
 }
