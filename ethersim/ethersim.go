@@ -8,6 +8,7 @@ type NetworkMsg interface {
 	Copy() NetworkMsg
 	From() int
 	IsJam() bool
+	Value() string
 }
 
 type NetworkComponent interface {
@@ -24,23 +25,27 @@ type Network interface {
 
 type BaseMsg struct {
 	V      bool
+	Msg    string
 	Sender int
 }
 
-func (m *BaseMsg) Valid() bool { return m.V }
-func (m *BaseMsg) Invalid()    { m.V = false }
-func (m *BaseMsg) From() int   { return m.Sender }
-func (m *BaseMsg) IsJam() bool { return false }
+func (m *BaseMsg) Valid() bool   { return m.V }
+func (m *BaseMsg) Invalid()      { m.V = false }
+func (m *BaseMsg) From() int     { return m.Sender }
+func (m *BaseMsg) IsJam() bool   { return false }
+func (m *BaseMsg) Value() string { return m.Msg }
 func (m *BaseMsg) Copy() NetworkMsg {
 	return &BaseMsg{
 		V:      m.V,
 		Sender: m.Sender,
+		Msg:    m.Msg,
 	}
 }
 
 type JamMsg struct{ Sender int }
 
 func (m *JamMsg) Valid() bool      { return true }
+func (m *JamMsg) Value() string    { return "" }
 func (m *JamMsg) Invalid()         {}
 func (m *JamMsg) From() int        { return m.Sender }
 func (m *JamMsg) IsJam() bool      { return true }

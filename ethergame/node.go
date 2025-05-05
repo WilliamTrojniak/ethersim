@@ -1,18 +1,21 @@
 package ethergame
 
 import (
+	"fmt"
 	"image/color"
 
 	"github.com/WilliamTrojniak/ethersim/ethersim"
+	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type Node struct {
 	game *Game
 	*ethersim.NetworkNode
-	Graphic
+	Circle
 	clicked  bool
 	selected bool
+	ui       *widget.Text
 }
 
 func (n *Node) Draw(screen *ebiten.Image, prog float32) {
@@ -20,14 +23,16 @@ func (n *Node) Draw(screen *ebiten.Image, prog float32) {
 		n.SetColor(ColorTeal)
 	} else if n.IsResetting() {
 		n.SetColor(ColorOrange)
+	} else if n.IsTransmitting() {
+		n.SetColor(ColorGreen)
 	} else {
 		n.SetColor(color.Black)
 	}
 
-	n.Graphic.Draw(screen, prog)
+	p := Progress{C: &n.Circle, p: float32(n.Timeout()) / float32(n.TimeoutFrom())}
+	p.Draw(screen, prog)
+	n.Circle.Draw(screen, prog)
 }
-
-func (n *Node) Update() {}
 
 func (n *Node) OnEvent(e Event) bool {
 	switch e := e.(type) {
@@ -77,7 +82,7 @@ func (g *Game) makeNode(n *ethersim.NetworkNode) *Node {
 	nn := &Node{
 		game:        g,
 		NetworkNode: n,
-		Graphic: &Circle{
+		Circle: Circle{
 			pos:    Vec2[int]{50, 50},
 			R:      8,
 			c:      color.Black,
@@ -86,6 +91,8 @@ func (g *Game) makeNode(n *ethersim.NetworkNode) *Node {
 		clicked:  false,
 		selected: false,
 	}
+	nn.ui = nn.createUI()
+	g.deviceDataContainer.AddChild(nn.ui)
 	g.nodes = append(g.nodes, nn)
 	g.objs = append(g.objs, nn)
 	return nn
@@ -100,4 +107,20 @@ func (n *Node) CreateNode(w int) *Node {
 	nn := n.game.makeNode(simNode)
 	n.game.makeEdge(n, nn, simEdge)
 	return nn
+}
+func (n *Node) getLabel() string {
+	return fmt.Sprintf("(T%v) | Max Timeout: %v | QueuedL %v | Sending: %v", n.Id(), n.TimeoutRange(), n.NQueued(), n.SendingValue())
+}
+
+func (n *Node) createUI() *widget.Text {
+	row := widget.NewText(widget.TextOpts.Text(
+		n.getLabel(),
+		face,
+		color.Black,
+	))
+	return row
+}
+
+func (n *Node) Update() {
+	n.ui.Label = n.getLabel()
 }

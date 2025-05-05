@@ -2,10 +2,9 @@ package ethergame
 
 import (
 	"fmt"
-	"image/color"
+	"math/rand"
 
 	"github.com/WilliamTrojniak/ethersim/ethersim"
-	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -14,7 +13,6 @@ type Device struct {
 	Circle
 	clicked  bool
 	selected bool
-	ui       *widget.Text
 }
 
 func (s *Device) Draw(screen *ebiten.Image, prog float32) {
@@ -61,31 +59,14 @@ func (s *Device) OnEvent(e Event) bool {
 		}
 		switch e.Key {
 		case ebiten.KeyM:
-			s.QueueMessage(&ethersim.BaseMsg{V: true})
+			s.QueueMessage(&ethersim.BaseMsg{V: true, Msg: fmt.Sprintf("%v", rand.Intn(10))})
 			return true
 		}
 	}
 
 	return false
 }
-
-func (d *Device) getLabel() string {
-	return fmt.Sprintf("(D%v) Queued: %v, Timeout Range %v", d.Id(), len(d.QueuedMessages()), d.TimeoutRange())
-}
-
-func (d *Device) createUI() *widget.Text {
-	row := widget.NewText(widget.TextOpts.Text(
-		d.getLabel(),
-		face,
-		color.Black,
-	))
-	return row
-}
-
-func (d *Device) Update() {
-	d.ui.Label = d.getLabel()
-}
-
+func (d *Device) Update() {}
 func (n *Node) CreateDevice(w int) *Device {
 	simDevice, simEdge := n.NetworkNode.CreateDevice(w)
 	d := &Device{
@@ -101,9 +82,6 @@ func (n *Node) CreateDevice(w int) *Device {
 	n.game.makeEdge(n, d, simEdge)
 	n.game.devices = append(n.game.devices, d)
 	n.game.objs = append(n.game.objs, d)
-
-	d.ui = d.createUI()
-	n.game.deviceDataContainer.AddChild(d.ui)
 
 	return d
 }

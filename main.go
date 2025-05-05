@@ -19,10 +19,7 @@ func main() {
 		d := node.CreateDevice(4)
 		d.MoveTo(50+i*60, 100)
 
-		if i%4 == 0 {
-			d.QueueMessage(&ethersim.BaseMsg{V: true})
-			d.QueueMessage(&ethersim.BaseMsg{V: true})
-			d.QueueMessage(&ethersim.BaseMsg{V: true})
+		if i%5 == 0 {
 			d.QueueMessage(&ethersim.BaseMsg{V: true})
 		}
 
