@@ -8,19 +8,30 @@ type incMessage struct {
 }
 
 type NetworkNode struct {
-	sim         *Simulation
-	id          int
-	edges       []*NetworkEdge
-	incMessages []incMessage
-	resetting   int
+	sim          *Simulation
+	id           int
+	edges        []*NetworkEdge
+	deviceEdge   *NetworkEdge
+	incMessages  []incMessage
+	outMessages  []NetworkMsg
+	resetting    int
+	transmitting bool
+	resetTicks   int
+	timeout      int
+	timeoutRange int
+	timeoutFrom  int
+	seenReset    bool
+	hasSent      bool
 }
 
 func MakeNetworkNode(s *Simulation) *NetworkNode {
 	n := &NetworkNode{
-		sim:       s,
-		id:        nodeid,
-		edges:     make([]*NetworkEdge, 0),
-		resetting: 0,
+		sim:          s,
+		id:           nodeid,
+		edges:        make([]*NetworkEdge, 0),
+		deviceEdge:   nil,
+		resetting:    0,
+		transmitting: false,
 	}
 	s.register(n)
 	nodeid++
@@ -59,6 +70,11 @@ func (n *NetworkNode) Tick() {
 
 // OnMsg expects to be called during the rising tick
 func (n *NetworkNode) OnMsg(msg NetworkMsg, from Network) {
+	// if n.deviceEdge != nil && from == n.deviceEdge.n2 {
+	// 	n.outMessages = append(n.outMessages, msg)
+	// 	return
+	// }
+
 	n.incMessages = append(n.incMessages, incMessage{
 		m:    msg,
 		from: from,
@@ -72,12 +88,6 @@ func (n *NetworkNode) incomingMsg(dest Network) bool {
 			return true
 		}
 	}
-
-	// for _, edge := range n.edges {
-	// 	if edge != dest && edge.incomingMsg(n) {
-	// 		return true
-	// 	}
-	// }
 
 	return false
 }

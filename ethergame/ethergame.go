@@ -2,12 +2,14 @@ package ethergame
 
 import (
 	"bytes"
+	"fmt"
 	"image/color"
 	"log"
 	"time"
 
 	"github.com/WilliamTrojniak/ethersim/ethersim"
 	"github.com/ebitenui/ebitenui"
+	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -29,6 +31,7 @@ type Game struct {
 	devices         []*Device
 	sim             *ethersim.Simulation
 	justPressedKeys []ebiten.Key
+	speedFactor     float32
 	paused          bool
 	prog            float32
 	activeWeight    int
@@ -119,10 +122,10 @@ func (g *Game) Update() error {
 
 	t := time.Now()
 	if g.paused {
-		g.prevTick = t.Add(-(time.Duration(g.prog * float32(TIME_PER_TICK))))
+		g.prevTick = t.Add(-(time.Duration(g.prog * float32(TIME_PER_TICK) * g.speedFactor)))
 	}
 
-	if t.Sub(g.prevTick) <= 1*TIME_PER_TICK || g.paused {
+	if t.Sub(g.prevTick) <= time.Duration(float32(TIME_PER_TICK)/g.speedFactor) || g.paused {
 		return nil
 	}
 
@@ -137,7 +140,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	n := time.Now()
 	deltaT := n.Sub(g.prevTick)
 	if !g.paused {
-		g.prog = min(1, float32(deltaT)/float32(TIME_PER_TICK))
+		g.prog = min(1, float32(deltaT)/float32(TIME_PER_TICK)*g.speedFactor)
 	}
 
 	for _, edge := range g.edges {
@@ -162,13 +165,88 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 func (g *Game) getEbitenUI() *ebitenui.UI {
 
 	root := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewAnchorLayout(widget.AnchorLayoutOpts.Padding(widget.NewInsetsSimple(16)))))
-	deviceDataRows := widget.NewContainer(
+	footer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Direction(widget.DirectionVertical))),
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-			VerticalPosition: widget.AnchorLayoutPositionEnd,
+			VerticalPosition:  widget.AnchorLayoutPositionEnd,
+			StretchHorizontal: true,
 		})))
 
-	root.AddChild(deviceDataRows)
+	controlsContainer := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout(widget.AnchorLayoutOpts.Padding(widget.NewInsetsSimple(16)))),
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Stretch: true,
+		})),
+	)
+
+	deviceDataRows := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Direction(widget.DirectionVertical))),
+	)
+
+	sliderContainer := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Direction(widget.DirectionVertical))),
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+			VerticalPosition:   widget.AnchorLayoutPositionEnd,
+			HorizontalPosition: widget.AnchorLayoutPositionCenter,
+		})))
+	sliderLabel := widget.NewText(widget.TextOpts.Text(fmt.Sprintf("Speed: %.2fx", 100.0/100.0), face, color.Black))
+	slider := widget.NewSlider(
+		// Set the slider orientation - n/s vs e/w
+		widget.SliderOpts.Direction(widget.DirectionHorizontal),
+		// Set the minimum and maximum value for the slider
+		widget.SliderOpts.MinMax(50, 200),
+		// Set the current value of the slider, without triggering a change event
+		widget.SliderOpts.InitialCurrent(100),
+		widget.SliderOpts.WidgetOpts(
+			// Set the Widget to layout in the center on the screen
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				HorizontalPosition: widget.AnchorLayoutPositionCenter,
+				VerticalPosition:   widget.AnchorLayoutPositionCenter,
+			}),
+		),
+		widget.SliderOpts.Images(
+			// Set the track images
+			&widget.SliderTrackImage{
+				Idle:  image.NewNineSliceColor(ColorFadedNavy),
+				Hover: image.NewNineSliceColor(ColorFadedNavy),
+			},
+			// Set the handle images
+			&widget.ButtonImage{
+				Idle:    image.NewNineSliceColor(color.Black),
+				Hover:   image.NewNineSliceColor(color.Black),
+				Pressed: image.NewNineSliceColor(color.Black),
+			},
+		),
+		// Set the size of the handle
+		widget.SliderOpts.FixedHandleSize(20),
+		// Set the offset to display the track
+		widget.SliderOpts.TrackOffset(0),
+		// Set the size to move the handle
+		widget.SliderOpts.PageSizeFunc(func() int {
+			return 1
+		}),
+		// Set the callback to call when the slider value is changed
+		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
+			g.speedFactor = float32(args.Slider.Current) / 100.0
+			sliderLabel.Label = fmt.Sprintf("Speed: %.2fx", g.speedFactor)
+		}),
+
+		widget.SliderOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				VerticalPosition:   widget.AnchorLayoutPositionEnd,
+				HorizontalPosition: widget.AnchorLayoutPositionCenter,
+			}),
+
+			// Set the widget's dimensions
+			widget.WidgetOpts.MinSize(400, 10),
+		),
+	)
+	root.AddChild(footer)
+	footer.AddChild(deviceDataRows)
+	footer.AddChild(controlsContainer)
+	controlsContainer.AddChild(sliderContainer)
+	sliderContainer.AddChild(slider)
+	sliderContainer.AddChild(sliderLabel)
 
 	g.deviceDataContainer = deviceDataRows
 	return &ebitenui.UI{
@@ -189,6 +267,7 @@ func MakeGame(sim *ethersim.Simulation) *Game {
 		paused:          false,
 		activeWeight:    3,
 		ui:              nil,
+		speedFactor:     1.0,
 	}
 
 	g.ui = g.getEbitenUI()

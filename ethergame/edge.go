@@ -31,7 +31,7 @@ func (e *Edge) Update() {}
 
 func (e *Edge) Draw(img *ebiten.Image, prog float32) {
 	if e.edge.IsResetting() {
-		e.c = ColorSalmon
+		e.c = ColorOrange
 	} else {
 		e.c = ColorDark
 	}
@@ -76,6 +76,9 @@ func (e *Edge) Draw(img *ebiten.Image, prog float32) {
 		col = ColorDark
 		if !msg.Msg().Valid() {
 			col = ColorSalmon
+		}
+		if msg.Msg().IsJam() {
+			col = ColorOrange
 		}
 
 		c := Circle{

@@ -29,6 +29,8 @@ var (
 	ColorCyan      color.Color = color.RGBA{0x77, 0x9f, 0xa1, 0xFF}
 	ColorNavy      color.Color = color.RGBA{0x45, 0x69, 0x90, 0xFF}
 	ColorFadedNavy color.Color = color.RGBA{0x76, 0x85, 0x94, 0xFF}
+
+	ColorOrange color.Color = color.RGBA{0xC7, 0x50, 0x00, 0xFF}
 )
 
 type Rect struct {
@@ -159,4 +161,40 @@ func (w *Wave) Draw(screen *ebiten.Image, prog float32) {
 	srcImg.Fill(color.White)
 	screen.DrawTriangles(vertices, indices, srcImg, &drawOp)
 
+}
+
+type Progress struct {
+	C *Circle
+	p float32
+}
+
+func (P *Progress) Draw(screen *ebiten.Image, prog float32) {
+	var path vector.Path
+	x := float32(P.C.pos.X)
+	y := float32(P.C.pos.Y)
+	r := P.C.R + 4
+
+	path.MoveTo(x, y)
+	path.LineTo(x, y-r)
+	path.Arc(x, y, r, -math.Pi/2, (-0.5+2*P.p)*math.Pi, vector.Clockwise)
+	path.LineTo(x, y)
+	path.Close()
+
+	vertices, indices := path.AppendVerticesAndIndicesForFilling(nil, nil)
+
+	for i := range vertices {
+		vertices[i].SrcX = 1
+		vertices[i].SrcY = 1
+		vertices[i].ColorR = 0x95 / float32(0xff)
+		vertices[i].ColorG = 0xBF / float32(0xff)
+		vertices[i].ColorB = 0x74 / float32(0xff)
+		vertices[i].ColorA = 1
+	}
+
+	i := ebiten.NewImage(5, 5)
+	i.Fill(color.White)
+	op := &ebiten.DrawTrianglesOptions{}
+	op.AntiAlias = true
+	op.FillRule = ebiten.FillRuleNonZero
+	screen.DrawTriangles(vertices, indices, i, op)
 }

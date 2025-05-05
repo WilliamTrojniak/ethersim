@@ -11,7 +11,7 @@ import (
 
 type Device struct {
 	*ethersim.NetworkDevice
-	Graphic
+	Circle
 	clicked  bool
 	selected bool
 	ui       *widget.Text
@@ -19,20 +19,25 @@ type Device struct {
 
 func (s *Device) Draw(screen *ebiten.Image, prog float32) {
 	if s.selected {
-		s.Graphic.SetColor(ColorTeal)
+		s.SetColor(ColorTeal)
 	} else if s.NetworkDevice.IncomingMsg() {
-		s.Graphic.SetColor(ColorFadedNavy)
+		s.SetColor(ColorFadedNavy)
 	} else {
-		s.Graphic.SetColor(ColorNavy)
+		s.SetColor(ColorNavy)
 	}
 
-	s.Graphic.Draw(screen, prog)
+	p := Progress{
+		C: &s.Circle,
+		p: float32(s.Timeout()) / float32(s.TimeoutFrom()),
+	}
+	p.Draw(screen, prog)
+	s.Circle.Draw(screen, prog)
 }
 
 func (s *Device) OnEvent(e Event) bool {
 	switch e := e.(type) {
 	case MouseClickEvent:
-		if s.In(e.X, e.Y) && e.Button == ebiten.MouseButtonLeft {
+		if s.Circle.In(e.X, e.Y) && e.Button == ebiten.MouseButtonLeft {
 			s.clicked = !s.clicked
 			s.selected = !s.selected
 			return false
@@ -42,7 +47,7 @@ func (s *Device) OnEvent(e Event) bool {
 		break
 	case MouseMoveEvent:
 		if s.clicked {
-			s.MoveTo(e.X, e.Y)
+			s.Circle.MoveTo(e.X, e.Y)
 			return false
 		}
 		break
@@ -65,7 +70,7 @@ func (s *Device) OnEvent(e Event) bool {
 }
 
 func (d *Device) getLabel() string {
-	return fmt.Sprintf("(D%v) Queued: %v, Timeout: %v, Factor %v", d.Id(), len(d.QueuedMessages()), d.Timeout(), d.TimeoutFactor())
+	return fmt.Sprintf("(D%v) Queued: %v, Timeout Range %v", d.Id(), len(d.QueuedMessages()), d.TimeoutRange())
 }
 
 func (d *Device) createUI() *widget.Text {
@@ -85,7 +90,7 @@ func (n *Node) CreateDevice(w int) *Device {
 	simDevice, simEdge := n.NetworkNode.CreateDevice(w)
 	d := &Device{
 		NetworkDevice: simDevice,
-		Graphic: &Circle{
+		Circle: Circle{
 			pos:    Vec2[int]{50, 50},
 			R:      24,
 			c:      ColorDark,

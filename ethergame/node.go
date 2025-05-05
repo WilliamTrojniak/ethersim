@@ -19,7 +19,7 @@ func (n *Node) Draw(screen *ebiten.Image, prog float32) {
 	if n.selected {
 		n.SetColor(ColorTeal)
 	} else if n.IsResetting() {
-		n.SetColor(ColorSalmon)
+		n.SetColor(ColorOrange)
 	} else {
 		n.SetColor(color.Black)
 	}
