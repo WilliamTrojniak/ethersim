@@ -109,7 +109,7 @@ func (n *Node) CreateNode(w int) *Node {
 	return nn
 }
 func (n *Node) getLabel() string {
-	return fmt.Sprintf("(T%v) | Max Timeout: %v | QueuedL %v | Sending: %v", n.Id(), n.TimeoutRange(), n.NQueued(), n.SendingValue())
+	return fmt.Sprintf("(T%v) | Max Timeout: %v | Queued: %v | Sending: %v | To: %v", n.Id(), n.TimeoutRange(), n.NQueued(), n.SendingValue(), n.SendingTo())
 }
 
 func (n *Node) createUI() *widget.Text {

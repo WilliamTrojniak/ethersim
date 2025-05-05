@@ -82,7 +82,7 @@ func (g *Game) OnEvent(event Event) {
 
 	for _, obj := range g.objs {
 		if obj.OnEvent(event) {
-			break
+			return
 		}
 	}
 
@@ -173,14 +173,15 @@ func (g *Game) getEbitenUI() *ebitenui.UI {
 		})))
 
 	controlsContainer := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout(widget.AnchorLayoutOpts.Padding(widget.NewInsetsSimple(16)))),
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: true,
 		})),
 	)
 
 	deviceDataRows := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Direction(widget.DirectionVertical))),
+		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			widget.RowLayoutOpts.Padding(widget.Insets{Bottom: 16}))),
 	)
 
 	sliderContainer := widget.NewContainer(
@@ -241,9 +242,17 @@ func (g *Game) getEbitenUI() *ebitenui.UI {
 			widget.WidgetOpts.MinSize(400, 10),
 		),
 	)
+
+	controlsLabel := widget.NewText(widget.TextOpts.Text(
+		"[space]: Pause/Play | [n]: New Transceiver | [d]: New Device\n[m]: New Message | [0-9]: Set New Edge Weight",
+		face,
+		color.Black,
+	))
+
 	root.AddChild(footer)
 	footer.AddChild(deviceDataRows)
 	footer.AddChild(controlsContainer)
+	controlsContainer.AddChild(controlsLabel)
 	controlsContainer.AddChild(sliderContainer)
 	sliderContainer.AddChild(slider)
 	sliderContainer.AddChild(sliderLabel)

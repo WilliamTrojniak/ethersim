@@ -100,13 +100,21 @@ func (n *NetworkNode) Tick() {
 
 				n.randomizeTimeout()
 			}
-		} else if len(n.incMessages) > 0 {
+		} else if len(n.incMessages) == 1 {
 			msg := n.incMessages[0]
 			if edge.n1 != msg.from && edge.n2 != msg.from {
-				edge.OnMsg(n.incMessages[0].m.Copy(), n)
+				edge.OnMsg(msg.m.Copy(), n)
 			}
 		}
 	}
+
+	if n.resetTicks == 0 && !n.transmitting && len(n.incMessages) == 1 {
+		msg := n.incMessages[0]
+		if n.deviceEdge != nil && msg.m.Dest() == n.deviceEdge.n2.Id() {
+			n.deviceEdge.OnMsg(msg.m.Copy(), n)
+		}
+	}
+
 	n.incMessages = n.incMessages[:0]
 }
 
@@ -157,9 +165,15 @@ func (n *NetworkNode) TimeoutFrom() int     { return n.timeoutFrom }
 func (n *NetworkNode) Timeout() int         { return n.timeout }
 func (n *NetworkNode) NQueued() int         { return len(n.outMessages) }
 func (n *NetworkNode) IsTransmitting() bool { return n.transmitting }
+func (n *NetworkNode) SendingTo() int {
+	if n.transmitting {
+		return n.outMessages[0].Dest()
+	}
+	return -1
+}
 func (n *NetworkNode) SendingValue() string {
 	if n.transmitting {
 		return n.outMessages[0].Value()
 	}
-	return ""
+	return "-"
 }

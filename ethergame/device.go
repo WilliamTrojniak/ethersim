@@ -9,6 +9,7 @@ import (
 )
 
 type Device struct {
+	game *Game
 	*ethersim.NetworkDevice
 	Circle
 	clicked  bool
@@ -59,7 +60,7 @@ func (s *Device) OnEvent(e Event) bool {
 		}
 		switch e.Key {
 		case ebiten.KeyM:
-			s.QueueMessage(&ethersim.BaseMsg{V: true, Msg: fmt.Sprintf("%v", rand.Intn(10))})
+			s.QueueMessage(&ethersim.BaseMsg{V: true, Msg: fmt.Sprintf("%v", rand.Intn(10)), To: rand.Intn(len(s.game.devices))})
 			return true
 		}
 	}
@@ -70,6 +71,7 @@ func (d *Device) Update() {}
 func (n *Node) CreateDevice(w int) *Device {
 	simDevice, simEdge := n.NetworkNode.CreateDevice(w)
 	d := &Device{
+		game:          n.game,
 		NetworkDevice: simDevice,
 		Circle: Circle{
 			pos:    Vec2[int]{50, 50},
