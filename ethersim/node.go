@@ -91,15 +91,16 @@ func (n *NetworkNode) Tick() {
 		if n.resetTicks > 0 {
 			edge.OnMsg(&JamMsg{}, n)
 		} else if n.transmitting {
-			edge.OnMsg(n.outMessages[0].Copy(), n)
+			msg := n.outMessages[0].Copy()
 			n.transmitRem--
 			if n.transmitRem <= 0 {
 				n.transmitting = false
 				n.outMessages = n.outMessages[1:]
 				n.timeoutRange = int(float32(n.timeoutRange)*0.9) + 2
-
 				n.randomizeTimeout()
+				msg.SetLast()
 			}
+			edge.OnMsg(msg, n)
 		} else if len(n.incMessages) == 1 {
 			msg := n.incMessages[0]
 			if edge.n1 != msg.from && edge.n2 != msg.from {
@@ -110,7 +111,7 @@ func (n *NetworkNode) Tick() {
 
 	if n.resetTicks == 0 && !n.transmitting && len(n.incMessages) == 1 {
 		msg := n.incMessages[0]
-		if n.deviceEdge != nil && msg.m.Dest() == n.deviceEdge.n2.Id() {
+		if n.deviceEdge != nil && msg.m.Dest() == n.deviceEdge.n2.Id() && msg.m.IsLast() {
 			n.deviceEdge.OnMsg(msg.m.Copy(), n)
 		}
 	}

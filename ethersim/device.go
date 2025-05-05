@@ -1,9 +1,5 @@
 package ethersim
 
-import (
-// "math/rand/v2"
-)
-
 var deviceid int = 0
 var numResetTicks int = 40
 
@@ -12,6 +8,7 @@ type NetworkDevice struct {
 	network        Network
 	id             int
 	queuedMessages []NetworkMsg
+	lastMessage    string
 }
 
 func (n *NetworkNode) CreateDevice(weight int) (*NetworkDevice, *NetworkEdge) {
@@ -44,6 +41,9 @@ func (d *NetworkDevice) Tick() {
 
 // Expects to be called during rising edge of tick
 func (d *NetworkDevice) OnMsg(msg NetworkMsg, sender Network) {
+	if msg.IsLast() {
+		d.lastMessage = msg.Value()
+	}
 }
 
 func (d *NetworkDevice) incomingMsg(Network) bool { return false }
@@ -60,7 +60,4 @@ func (d *NetworkDevice) isResetting(from Network) bool {
 }
 
 func (d *NetworkDevice) QueuedMessages() []NetworkMsg { return d.queuedMessages }
-func (d *NetworkDevice) Timeout() int                 { return 0 }
-func (d *NetworkDevice) TimeoutFrom() int             { return 1 }
-func (d *NetworkDevice) TimeoutRange() int            { return 1 }
-func (d *NetworkDevice) SeenT() bool                  { return false }
+func (d *NetworkDevice) LastMsg() string              { return d.lastMessage }

@@ -11,13 +11,15 @@ import (
 func main() {
 	sim := ethersim.MakeSimulation()
 	game := ethergame.MakeGame(sim)
+	baseX := 550
+	baseY := 200
 
 	node := game.MakeNode(sim)
 	count := 5
 	for i := range count {
-		node.MoveTo(50+i*60, 50)
+		node.MoveTo(baseX+50+i*60, baseY+50)
 		d := node.CreateDevice(4)
-		d.MoveTo(50+i*60, 100)
+		d.MoveTo(baseX+50+i*60, baseY+100)
 
 		if i%5 == 0 {
 			d.QueueMessage(&ethersim.BaseMsg{V: true, Msg: "Hello", To: i + 3})

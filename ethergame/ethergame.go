@@ -24,18 +24,19 @@ const (
 )
 
 type Game struct {
-	prevTick        time.Time
-	objs            []GameObject
-	nodes           []*Node
-	edges           []*Edge
-	devices         []*Device
-	sim             *ethersim.Simulation
-	justPressedKeys []ebiten.Key
-	speedFactor     float32
-	paused          bool
-	prog            float32
-	activeWeight    int
-	ui              *ebitenui.UI
+	prevTick          time.Time
+	objs              []GameObject
+	nodes             []*Node
+	edges             []*Edge
+	devices           []*Device
+	sim               *ethersim.Simulation
+	justPressedKeys   []ebiten.Key
+	speedFactor       float32
+	paused            bool
+	prog              float32
+	activeWeight      int
+	ui                *ebitenui.UI
+	activeWeightLabel *widget.Text
 
 	deviceDataContainer *widget.Container
 }
@@ -51,6 +52,16 @@ func loadFont(size float64) (text.Face, error) {
 		Source: s,
 		Size:   size,
 	}, nil
+}
+
+func (g *Game) updateActiveWeightLabel() {
+	g.activeWeightLabel.Label = ""
+	if g.paused {
+		g.activeWeightLabel.Label += "Paused | "
+	} else {
+		g.activeWeightLabel.Label += "Running | "
+	}
+	g.activeWeightLabel.Label += fmt.Sprintf("Active Weight: %v", g.activeWeight)
 }
 
 func (g *Game) OnEvent(event Event) {
@@ -119,6 +130,8 @@ func (g *Game) Update() error {
 	for _, key := range g.justPressedKeys {
 		g.OnEvent(KeyJustPressedEvent{Key: key})
 	}
+
+	g.updateActiveWeightLabel()
 
 	t := time.Now()
 	if g.paused {
@@ -249,15 +262,27 @@ func (g *Game) getEbitenUI() *ebitenui.UI {
 		color.Black,
 	))
 
+	weightLabel := widget.NewText(widget.TextOpts.Text(
+		fmt.Sprintf("Active Weight: %v", g.activeWeight),
+		face,
+		color.Black,
+	),
+		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+			VerticalPosition:   widget.AnchorLayoutPositionEnd,
+			HorizontalPosition: widget.AnchorLayoutPositionEnd,
+		})))
+
 	root.AddChild(footer)
 	footer.AddChild(deviceDataRows)
 	footer.AddChild(controlsContainer)
 	controlsContainer.AddChild(controlsLabel)
 	controlsContainer.AddChild(sliderContainer)
+	controlsContainer.AddChild(weightLabel)
 	sliderContainer.AddChild(slider)
 	sliderContainer.AddChild(sliderLabel)
 
 	g.deviceDataContainer = deviceDataRows
+	g.activeWeightLabel = weightLabel
 	return &ebitenui.UI{
 		Container: root,
 	}
