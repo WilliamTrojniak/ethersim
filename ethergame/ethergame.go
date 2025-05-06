@@ -60,6 +60,9 @@ func (g *Game) onTransceiverBeginTransmit(id int) {
 func (g *Game) onTransceiverEndTransmit(id int) {
 	g.LogSimEvent(fmt.Sprintf("(T%v) end transmit", id))
 }
+func (g *Game) onTransceiverJam(id int) {
+	g.LogSimEvent(fmt.Sprintf("(T%v) detected collision. Jamming", id))
+}
 
 func loadFont(size float64) (text.Face, error) {
 	s, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
@@ -379,6 +382,7 @@ func MakeGame(sim *ethersim.Simulation) *Game {
 
 	sim.SetTransceiverBeginTransmitCb(g.onTransceiverBeginTransmit)
 	sim.SetTransceiverEndTransmitCb(g.onTransceiverEndTransmit)
+	sim.SetTransceiverJamCb(g.onTransceiverJam)
 
 	return g
 }

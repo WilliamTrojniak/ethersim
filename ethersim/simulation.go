@@ -8,6 +8,7 @@ type Simulation struct {
 
 	onTransceiverBeginTransmit EventCb
 	onTransceiverEndTransmit   EventCb
+	onTransceiverJam           EventCb
 }
 
 func MakeSimulation() *Simulation {
@@ -36,3 +37,4 @@ func (s *Simulation) register(c NetworkComponent) {
 
 func (s *Simulation) SetTransceiverBeginTransmitCb(f EventCb) { s.onTransceiverBeginTransmit = f }
 func (s *Simulation) SetTransceiverEndTransmitCb(f EventCb)   { s.onTransceiverEndTransmit = f }
+func (s *Simulation) SetTransceiverJamCb(f EventCb)           { s.onTransceiverJam = f }

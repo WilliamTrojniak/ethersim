@@ -59,8 +59,22 @@ func (n *NetworkNode) Id() int { return n.id }
 // Distribute messages to edges after edges have ticked
 func (n *NetworkNode) TickFalling() bool { return true }
 func (n *NetworkNode) Tick() {
-	if len(n.incMessages) > 1 || (len(n.incMessages) == 1 && n.transmitting) {
+	hasNonJam := false
+	hasJam := false
+	for _, m := range n.incMessages {
+		hasNonJam = hasNonJam || !m.m.IsJam()
+		hasJam = hasJam || m.m.IsJam()
+	}
+
+	if hasJam {
+		if n.transmitting {
+			n.timeoutRange *= 2
+		}
+
+		n.transmitting = false
+	} else if (len(n.incMessages) > 1 && hasNonJam) || (len(n.incMessages) == 1 && n.transmitting) {
 		if !n.seenReset {
+			n.sim.onTransceiverJam(n.id)
 			n.seenReset = true
 			if n.transmitting {
 				n.timeoutRange *= 2
@@ -91,6 +105,15 @@ func (n *NetworkNode) Tick() {
 	for _, edge := range n.edges {
 		if n.resetTicks > 0 {
 			edge.OnMsg(&JamMsg{}, n)
+		} else if hasJam {
+			for _, msg := range n.incMessages {
+				if !msg.m.IsJam() {
+					continue
+				}
+				if edge.n1 != msg.from && edge.n2 != msg.from {
+					edge.OnMsg(&JamMsg{}, n)
+				}
+			}
 		} else if n.transmitting {
 			msg := n.outMessages[0].Copy()
 			n.transmitRem--
