@@ -1,8 +1,13 @@
 package ethersim
 
+type EventCb func(id int)
+
 type Simulation struct {
 	components        []NetworkComponent
 	fallingComponents []NetworkComponent
+
+	onTransceiverBeginTransmit EventCb
+	onTransceiverEndTransmit   EventCb
 }
 
 func MakeSimulation() *Simulation {
@@ -28,3 +33,6 @@ func (s *Simulation) register(c NetworkComponent) {
 		s.components = append(s.components, c)
 	}
 }
+
+func (s *Simulation) SetTransceiverBeginTransmitCb(f EventCb) { s.onTransceiverBeginTransmit = f }
+func (s *Simulation) SetTransceiverEndTransmitCb(f EventCb)   { s.onTransceiverEndTransmit = f }

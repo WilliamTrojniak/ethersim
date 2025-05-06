@@ -81,6 +81,7 @@ func (n *NetworkNode) Tick() {
 	} else if n.timeout == 0 && len(n.outMessages) > 0 && !n.transmitting {
 		n.transmitting = true
 		n.transmitRem = 50
+		n.sim.onTransceiverBeginTransmit(n.id)
 	}
 
 	if n.resetTicks == 0 {
@@ -99,6 +100,7 @@ func (n *NetworkNode) Tick() {
 				n.timeoutRange = int(float32(n.timeoutRange)*0.9) + 2
 				n.randomizeTimeout()
 				msg.SetLast()
+				n.sim.onTransceiverEndTransmit(n.id)
 			}
 			edge.OnMsg(msg, n)
 		} else if len(n.incMessages) == 1 {

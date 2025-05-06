@@ -58,7 +58,10 @@ func (s *Device) OnEvent(e Event) bool {
 		}
 		switch e.Key {
 		case ebiten.KeyM:
-			s.QueueMessage(&ethersim.BaseMsg{V: true, Msg: fmt.Sprintf("%v", rand.Intn(10)), To: rand.Intn(len(s.game.devices))})
+			for range s.game.activeWeight {
+
+				s.QueueMessage(&ethersim.BaseMsg{V: true, Msg: fmt.Sprintf("%v", rand.Intn(10)), To: rand.Intn(len(s.game.devices))})
+			}
 			return true
 		}
 	}

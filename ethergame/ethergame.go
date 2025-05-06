@@ -24,21 +24,41 @@ const (
 )
 
 type Game struct {
-	prevTick          time.Time
-	objs              []GameObject
-	nodes             []*Node
-	edges             []*Edge
-	devices           []*Device
-	sim               *ethersim.Simulation
-	justPressedKeys   []ebiten.Key
-	speedFactor       float32
-	paused            bool
-	prog              float32
-	activeWeight      int
-	ui                *ebitenui.UI
-	activeWeightLabel *widget.Text
+	prevTick        time.Time
+	objs            []GameObject
+	nodes           []*Node
+	edges           []*Edge
+	devices         []*Device
+	sim             *ethersim.Simulation
+	justPressedKeys []ebiten.Key
+	speedFactor     float32
+	paused          bool
+	prog            float32
+	activeWeight    int
+	ui              *ebitenui.UI
+	sliderLabel     *widget.Text
+	logEntries      *widget.List
 
 	deviceDataContainer *widget.Container
+}
+
+type LogEntry struct {
+	Val string
+	Id  int
+}
+
+var logId = 0
+
+func (g *Game) LogSimEvent(eventDesc string) {
+	g.logEntries.AddEntry(LogEntry{Val: eventDesc, Id: logId})
+	logId++
+}
+
+func (g *Game) onTransceiverBeginTransmit(id int) {
+	g.LogSimEvent(fmt.Sprintf("(T%v) begin transmit", id))
+}
+func (g *Game) onTransceiverEndTransmit(id int) {
+	g.LogSimEvent(fmt.Sprintf("(T%v) end transmit", id))
 }
 
 func loadFont(size float64) (text.Face, error) {
@@ -55,13 +75,13 @@ func loadFont(size float64) (text.Face, error) {
 }
 
 func (g *Game) updateActiveWeightLabel() {
-	g.activeWeightLabel.Label = ""
+	g.sliderLabel.Label = fmt.Sprintf("Speed: %.2fx | ", g.speedFactor)
 	if g.paused {
-		g.activeWeightLabel.Label += "Paused | "
+		g.sliderLabel.Label += "Paused | "
 	} else {
-		g.activeWeightLabel.Label += "Running | "
+		g.sliderLabel.Label += "Running | "
 	}
-	g.activeWeightLabel.Label += fmt.Sprintf("Active Weight: %v", g.activeWeight)
+	g.sliderLabel.Label += fmt.Sprintf("Active Weight: %v", g.activeWeight)
 }
 
 func (g *Game) OnEvent(event Event) {
@@ -104,6 +124,9 @@ func (g *Game) OnEvent(event Event) {
 			nn := g.MakeNode(g.sim)
 			nn.clicked = true
 			nn.selected = true
+			return
+		case ebiten.KeyT:
+			g.sim.Tick()
 			return
 		}
 	}
@@ -242,7 +265,6 @@ func (g *Game) getEbitenUI() *ebitenui.UI {
 		// Set the callback to call when the slider value is changed
 		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
 			g.speedFactor = float32(args.Slider.Current) / 100.0
-			sliderLabel.Label = fmt.Sprintf("Speed: %.2fx", g.speedFactor)
 		}),
 
 		widget.SliderOpts.WidgetOpts(
@@ -257,32 +279,81 @@ func (g *Game) getEbitenUI() *ebitenui.UI {
 	)
 
 	controlsLabel := widget.NewText(widget.TextOpts.Text(
-		"[space]: Pause/Play | [n]: New Transceiver | [d]: New Device\n[m]: New Message | [0-9]: Set New Edge Weight",
+		"[space]: Pause/Play | [n]: New Transceiver | [d]: New Device\n[m]: New Message | [0-9]: Set Active Weight | [t] Tick",
 		face,
 		color.Black,
 	))
 
-	weightLabel := widget.NewText(widget.TextOpts.Text(
-		fmt.Sprintf("Active Weight: %v", g.activeWeight),
-		face,
-		color.Black,
-	),
-		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-			VerticalPosition:   widget.AnchorLayoutPositionEnd,
-			HorizontalPosition: widget.AnchorLayoutPositionEnd,
-		})))
+	logList := widget.NewList(
+		widget.ListOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(
+
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				HorizontalPosition: widget.AnchorLayoutPositionEnd,
+				StretchVertical:    true,
+			}),
+		)),
+		widget.ListOpts.Entries(nil),
+		widget.ListOpts.ScrollContainerOpts(
+			widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
+				Idle: image.NewNineSliceColor(color.NRGBA{0xFF, 0xFF, 0xFF, 0x00}),
+				Mask: image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff}),
+			}),
+		),
+
+		widget.ListOpts.SliderOpts(
+			widget.SliderOpts.Images(&widget.SliderTrackImage{
+				Idle:  image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+				Hover: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+			}, &widget.ButtonImage{
+				Idle:    image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+				Hover:   image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+				Pressed: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+			}),
+			widget.SliderOpts.MinHandleSize(5),
+			// Set how wide the track should be
+			widget.SliderOpts.TrackPadding(widget.NewInsetsSimple(2)),
+		),
+
+		widget.ListOpts.EntryColor(&widget.ListEntryColor{
+			Selected:                   color.NRGBA{R: 0, G: 255, B: 0, A: 255},     // Foreground color for the unfocused selected entry
+			Unselected:                 color.NRGBA{R: 0, G: 0, B: 0, A: 255},       // Foreground color for the unfocused unselected entry
+			SelectedBackground:         color.NRGBA{R: 130, G: 130, B: 200, A: 255}, // Background color for the unfocused selected entry
+			SelectingBackground:        color.NRGBA{R: 130, G: 130, B: 130, A: 255}, // Background color for the unfocused being selected entry
+			SelectingFocusedBackground: color.NRGBA{R: 130, G: 140, B: 170, A: 255}, // Background color for the focused being selected entry
+			SelectedFocusedBackground:  color.NRGBA{R: 130, G: 130, B: 170, A: 255}, // Background color for the focused selected entry
+			FocusedBackground:          color.NRGBA{R: 170, G: 170, B: 180, A: 255}, // Background color for the focused unselected entry
+			DisabledUnselected:         color.NRGBA{R: 100, G: 100, B: 100, A: 255}, // Foreground color for the disabled unselected entry
+			DisabledSelected:           color.NRGBA{R: 100, G: 100, B: 100, A: 255}, // Foreground color for the disabled selected entry
+			DisabledSelectedBackground: color.NRGBA{R: 100, G: 100, B: 100, A: 255}, // Background color for the disabled selected entry
+		}),
+
+		// Hide the horizontal slider
+		widget.ListOpts.HideHorizontalSlider(),
+		// Set the font for the list options
+		widget.ListOpts.EntryFontFace(face),
+
+		widget.ListOpts.EntryLabelFunc(func(e any) string {
+			return e.(LogEntry).Val
+		}),
+
+		// Padding for each entry
+		widget.ListOpts.EntryTextPadding(widget.NewInsetsSimple(5)),
+		// Text position for each entry
+		widget.ListOpts.EntryTextPosition(widget.TextPositionStart, widget.TextPositionCenter),
+	)
 
 	root.AddChild(footer)
+	root.AddChild(logList)
 	footer.AddChild(deviceDataRows)
 	footer.AddChild(controlsContainer)
 	controlsContainer.AddChild(controlsLabel)
 	controlsContainer.AddChild(sliderContainer)
-	controlsContainer.AddChild(weightLabel)
 	sliderContainer.AddChild(slider)
 	sliderContainer.AddChild(sliderLabel)
 
 	g.deviceDataContainer = deviceDataRows
-	g.activeWeightLabel = weightLabel
+	g.logEntries = logList
+	g.sliderLabel = sliderLabel
 	return &ebitenui.UI{
 		Container: root,
 	}
@@ -305,6 +376,9 @@ func MakeGame(sim *ethersim.Simulation) *Game {
 	}
 
 	g.ui = g.getEbitenUI()
+
+	sim.SetTransceiverBeginTransmitCb(g.onTransceiverBeginTransmit)
+	sim.SetTransceiverEndTransmitCb(g.onTransceiverEndTransmit)
 
 	return g
 }

@@ -22,7 +22,7 @@ func main() {
 		d.MoveTo(baseX+50+i*60, baseY+100)
 
 		if i%5 == 0 {
-			d.QueueMessage(&ethersim.BaseMsg{V: true, Msg: "Hello", To: i + 3})
+			// d.QueueMessage(&ethersim.BaseMsg{V: true, Msg: "Hello", To: i + 3})
 		}
 
 		if i < count-1 {
