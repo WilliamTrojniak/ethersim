@@ -1,14 +1,17 @@
 package ethersim
 
 type EventCb func(id int)
+type MsgEventCb func(id int, msg NetworkMsg)
 
 type Simulation struct {
 	components        []NetworkComponent
 	fallingComponents []NetworkComponent
 
-	onTransceiverBeginTransmit EventCb
-	onTransceiverEndTransmit   EventCb
+	onTransceiverBeginTransmit MsgEventCb
+	onTransceiverEndTransmit   MsgEventCb
 	onTransceiverJam           EventCb
+	onCollisionDuringTransmit  EventCb
+	onDeviceReceiveMsg         MsgEventCb
 }
 
 func MakeSimulation() *Simulation {
@@ -35,6 +38,8 @@ func (s *Simulation) register(c NetworkComponent) {
 	}
 }
 
-func (s *Simulation) SetTransceiverBeginTransmitCb(f EventCb) { s.onTransceiverBeginTransmit = f }
-func (s *Simulation) SetTransceiverEndTransmitCb(f EventCb)   { s.onTransceiverEndTransmit = f }
-func (s *Simulation) SetTransceiverJamCb(f EventCb)           { s.onTransceiverJam = f }
+func (s *Simulation) SetTransceiverBeginTransmitCb(f MsgEventCb) { s.onTransceiverBeginTransmit = f }
+func (s *Simulation) SetTransceiverEndTransmitCb(f MsgEventCb)   { s.onTransceiverEndTransmit = f }
+func (s *Simulation) SetCollisionDuringTransmitCb(f EventCb)     { s.onCollisionDuringTransmit = f }
+func (s *Simulation) SetTransceiverJamCb(f EventCb)              { s.onTransceiverJam = f }
+func (s *Simulation) SetDeviceReceiveMsgCb(f MsgEventCb)         { s.onDeviceReceiveMsg = f }

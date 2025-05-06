@@ -92,7 +92,7 @@ func (g *Game) makeNode(n *ethersim.NetworkNode) *Node {
 		selected: false,
 	}
 	nn.ui = nn.createUI()
-	g.deviceDataContainer.AddChild(nn.ui)
+	g.transceiverDataContainer.AddChild(nn.ui)
 	g.nodes = append(g.nodes, nn)
 	g.objs = append(g.objs, nn)
 	return nn

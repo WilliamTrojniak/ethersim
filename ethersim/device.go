@@ -5,10 +5,11 @@ var numResetTicks int = 40
 
 // Devices
 type NetworkDevice struct {
+	sim            *Simulation
 	network        Network
 	id             int
 	queuedMessages []NetworkMsg
-	lastMessage    string
+	lastMessage    NetworkMsg
 }
 
 func (n *NetworkNode) CreateDevice(weight int) (*NetworkDevice, *NetworkEdge) {
@@ -17,8 +18,10 @@ func (n *NetworkNode) CreateDevice(weight int) (*NetworkDevice, *NetworkEdge) {
 	}
 	d := &NetworkDevice{
 		id:             deviceid,
+		sim:            n.sim,
 		queuedMessages: make([]NetworkMsg, 0),
 		network:        nil,
+		lastMessage:    &BaseMsg{Msg: "-", Sender: -1, To: -1},
 	}
 	deviceid++
 	edge := makeNetworkEdge(n.sim, n, d, weight)
@@ -42,7 +45,8 @@ func (d *NetworkDevice) Tick() {
 // Expects to be called during rising edge of tick
 func (d *NetworkDevice) OnMsg(msg NetworkMsg, sender Network) {
 	if msg.IsLast() {
-		d.lastMessage = msg.Value()
+		d.lastMessage = msg.Copy()
+		d.sim.onDeviceReceiveMsg(d.id, msg.Copy())
 	}
 }
 
@@ -60,4 +64,4 @@ func (d *NetworkDevice) isResetting(from Network) bool {
 }
 
 func (d *NetworkDevice) QueuedMessages() []NetworkMsg { return d.queuedMessages }
-func (d *NetworkDevice) LastMsg() string              { return d.lastMessage }
+func (d *NetworkDevice) LastMsg() NetworkMsg          { return d.lastMessage }

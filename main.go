@@ -15,7 +15,7 @@ func main() {
 	baseY := 200
 
 	node := game.MakeNode(sim)
-	count := 5
+	count := 3
 	for i := range count {
 		node.MoveTo(baseX+50+i*60, baseY+50)
 		d := node.CreateDevice(4)

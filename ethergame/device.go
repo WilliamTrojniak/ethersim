@@ -59,8 +59,12 @@ func (s *Device) OnEvent(e Event) bool {
 		switch e.Key {
 		case ebiten.KeyM:
 			for range s.game.activeWeight {
-
-				s.QueueMessage(&ethersim.BaseMsg{V: true, Msg: fmt.Sprintf("%v", rand.Intn(10)), To: rand.Intn(len(s.game.devices))})
+				val := fmt.Sprintf("%v", rand.Intn(10))
+				dest := rand.Intn(len(s.game.devices) - 1)
+				if dest == s.Id() {
+					dest++
+				}
+				s.QueueMessage(&ethersim.BaseMsg{V: true, Msg: val, Sender: s.Id(), To: dest})
 			}
 			return true
 		}
@@ -70,7 +74,7 @@ func (s *Device) OnEvent(e Event) bool {
 }
 
 func (d *Device) getLabel() string {
-	return fmt.Sprintf("(D%v) | Last Received: %v", d.Id(), d.LastMsg())
+	return fmt.Sprintf("(D%v) | Last Msg: {val: %v, to: %v, from: %v}", d.Id(), d.LastMsg().Value(), d.LastMsg().Dest(), d.LastMsg().From())
 }
 func (d *Device) Update() {
 	d.ui.Label = d.getLabel()

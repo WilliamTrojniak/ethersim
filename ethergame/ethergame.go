@@ -39,7 +39,8 @@ type Game struct {
 	sliderLabel     *widget.Text
 	logEntries      *widget.List
 
-	deviceDataContainer *widget.Container
+	transceiverDataContainer *widget.Container
+	deviceDataContainer      *widget.Container
 }
 
 type LogEntry struct {
@@ -54,14 +55,20 @@ func (g *Game) LogSimEvent(eventDesc string) {
 	logId++
 }
 
-func (g *Game) onTransceiverBeginTransmit(id int) {
-	g.LogSimEvent(fmt.Sprintf("(T%v) begin transmit", id))
+func (g *Game) onTransceiverBeginTransmit(id int, msg ethersim.NetworkMsg) {
+	g.LogSimEvent(fmt.Sprintf("(T%v) Begin Msg{val: %v, to: %v, from: %v}", id, msg.Value(), msg.Dest(), msg.From()))
 }
-func (g *Game) onTransceiverEndTransmit(id int) {
-	g.LogSimEvent(fmt.Sprintf("(T%v) end transmit", id))
+func (g *Game) onTransceiverEndTransmit(id int, msg ethersim.NetworkMsg) {
+	g.LogSimEvent(fmt.Sprintf("(T%v) End Msg{val: %v, to: %v, from %v}", id, msg.Value(), msg.Dest(), msg.From()))
+}
+func (g *Game) onCollisionDuringTransmit(id int) {
+	g.LogSimEvent(fmt.Sprintf("(T%v) Jam during transmit", id))
 }
 func (g *Game) onTransceiverJam(id int) {
-	g.LogSimEvent(fmt.Sprintf("(T%v) detected collision. Jamming", id))
+	g.LogSimEvent(fmt.Sprintf("(T%v) Detected collision. Jamming", id))
+}
+func (g *Game) onDeviceReceiveMsg(id int, msg ethersim.NetworkMsg) {
+	g.LogSimEvent(fmt.Sprintf("(D%v) Rec Msg{val: %v, to: %v, from: %v}", id, msg.Value(), msg.Dest(), msg.From()))
 }
 
 func loadFont(size float64) (text.Face, error) {
@@ -201,6 +208,13 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 	return outsideWidth, outsideHeight
 }
 
+func makeDataContainer() *widget.Container {
+	return widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			widget.RowLayoutOpts.Padding(widget.Insets{Bottom: 16}))),
+	)
+}
+
 func (g *Game) getEbitenUI() *ebitenui.UI {
 
 	root := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewAnchorLayout(widget.AnchorLayoutOpts.Padding(widget.NewInsetsSimple(16)))))
@@ -218,10 +232,8 @@ func (g *Game) getEbitenUI() *ebitenui.UI {
 		})),
 	)
 
-	deviceDataRows := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-			widget.RowLayoutOpts.Padding(widget.Insets{Bottom: 16}))),
-	)
+	g.deviceDataContainer = makeDataContainer()
+	g.transceiverDataContainer = makeDataContainer()
 
 	sliderContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Direction(widget.DirectionVertical))),
@@ -347,14 +359,14 @@ func (g *Game) getEbitenUI() *ebitenui.UI {
 
 	root.AddChild(footer)
 	root.AddChild(logList)
-	footer.AddChild(deviceDataRows)
+	footer.AddChild(g.transceiverDataContainer)
+	footer.AddChild(g.deviceDataContainer)
 	footer.AddChild(controlsContainer)
 	controlsContainer.AddChild(controlsLabel)
 	controlsContainer.AddChild(sliderContainer)
 	sliderContainer.AddChild(slider)
 	sliderContainer.AddChild(sliderLabel)
 
-	g.deviceDataContainer = deviceDataRows
 	g.logEntries = logList
 	g.sliderLabel = sliderLabel
 	return &ebitenui.UI{
@@ -382,7 +394,9 @@ func MakeGame(sim *ethersim.Simulation) *Game {
 
 	sim.SetTransceiverBeginTransmitCb(g.onTransceiverBeginTransmit)
 	sim.SetTransceiverEndTransmitCb(g.onTransceiverEndTransmit)
+	sim.SetCollisionDuringTransmitCb(g.onCollisionDuringTransmit)
 	sim.SetTransceiverJamCb(g.onTransceiverJam)
+	sim.SetDeviceReceiveMsgCb(g.onDeviceReceiveMsg)
 
 	return g
 }

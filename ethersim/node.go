@@ -1,6 +1,9 @@
 package ethersim
 
-import "math/rand/v2"
+import (
+	"fmt"
+	"math/rand/v2"
+)
 
 var nodeid int = 0
 
@@ -69,6 +72,7 @@ func (n *NetworkNode) Tick() {
 	if hasJam {
 		if n.transmitting {
 			n.timeoutRange *= 2
+			n.sim.onCollisionDuringTransmit(n.id)
 		}
 
 		n.transmitting = false
@@ -78,6 +82,7 @@ func (n *NetworkNode) Tick() {
 			n.seenReset = true
 			if n.transmitting {
 				n.timeoutRange *= 2
+				n.sim.onCollisionDuringTransmit(n.id)
 			}
 			n.resetTicks = numResetTicks
 		}
@@ -95,11 +100,18 @@ func (n *NetworkNode) Tick() {
 	} else if n.timeout == 0 && len(n.outMessages) > 0 && !n.transmitting {
 		n.transmitting = true
 		n.transmitRem = 50
-		n.sim.onTransceiverBeginTransmit(n.id)
+		n.sim.onTransceiverBeginTransmit(n.id, n.outMessages[0].Copy())
 	}
 
 	if n.resetTicks == 0 {
 		n.seenReset = false
+	}
+
+	if n.resetTicks == 0 && !hasJam && n.transmitting {
+		n.transmitRem--
+		if n.transmitRem <= 0 {
+			n.outMessages[0].SetLast()
+		}
 	}
 
 	for _, edge := range n.edges {
@@ -116,21 +128,28 @@ func (n *NetworkNode) Tick() {
 			}
 		} else if n.transmitting {
 			msg := n.outMessages[0].Copy()
-			n.transmitRem--
-			if n.transmitRem <= 0 {
-				n.transmitting = false
-				n.outMessages = n.outMessages[1:]
-				n.timeoutRange = int(float32(n.timeoutRange)*0.9) + 2
-				n.randomizeTimeout()
-				msg.SetLast()
-				n.sim.onTransceiverEndTransmit(n.id)
-			}
 			edge.OnMsg(msg, n)
 		} else if len(n.incMessages) == 1 {
 			msg := n.incMessages[0]
 			if edge.n1 != msg.from && edge.n2 != msg.from {
 				edge.OnMsg(msg.m.Copy(), n)
 			}
+		}
+	}
+
+	if n.transmitRem <= 0 && n.transmitting {
+		n.transmitting = false
+		n.timeoutRange = int(float32(n.timeoutRange)*0.9) + 2
+		n.randomizeTimeout()
+		n.sim.onTransceiverEndTransmit(n.id, n.outMessages[0].Copy())
+		n.outMessages = n.outMessages[1:]
+	}
+
+	if len(n.incMessages) > 0 {
+		msg := n.incMessages[0]
+		fmt.Printf("Received message on t for d %v\n", n.deviceEdge.n2.Id())
+		if msg.m.IsLast() {
+			fmt.Printf("Received last message on t for d %v\n", n.deviceEdge.n2.Id())
 		}
 	}
 
