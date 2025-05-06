@@ -56,6 +56,7 @@ func (d *NetworkDevice) QueueMessage(msg NetworkMsg) {
 
 	if len(d.queuedMessages) < 100 {
 		d.queuedMessages = append(d.queuedMessages, msg)
+		d.sim.onDeviceQueueMsg(d.id, msg.Copy())
 	}
 }
 

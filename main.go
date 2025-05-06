@@ -30,7 +30,8 @@ func main() {
 		}
 	}
 
-	ebiten.SetWindowSize(1200, 800)
+	ebiten.SetWindowSize(1400, 800)
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetWindowTitle("Hello World")
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)

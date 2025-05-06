@@ -1,7 +1,6 @@
 package ethersim
 
 import (
-	"fmt"
 	"math/rand/v2"
 )
 
@@ -72,17 +71,15 @@ func (n *NetworkNode) Tick() {
 	if hasJam {
 		if n.transmitting {
 			n.timeoutRange *= 2
-			n.sim.onCollisionDuringTransmit(n.id)
 		}
 
 		n.transmitting = false
-	} else if (len(n.incMessages) > 1 && hasNonJam) || (len(n.incMessages) == 1 && n.transmitting) {
+	} else if len(n.incMessages) > 0 && n.transmitting {
 		if !n.seenReset {
 			n.sim.onTransceiverJam(n.id)
 			n.seenReset = true
 			if n.transmitting {
 				n.timeoutRange *= 2
-				n.sim.onCollisionDuringTransmit(n.id)
 			}
 			n.resetTicks = numResetTicks
 		}
@@ -129,10 +126,11 @@ func (n *NetworkNode) Tick() {
 		} else if n.transmitting {
 			msg := n.outMessages[0].Copy()
 			edge.OnMsg(msg, n)
-		} else if len(n.incMessages) == 1 {
-			msg := n.incMessages[0]
-			if edge.n1 != msg.from && edge.n2 != msg.from {
-				edge.OnMsg(msg.m.Copy(), n)
+		} else {
+			for _, msg := range n.incMessages {
+				if edge.n1 != msg.from && edge.n2 != msg.from {
+					edge.OnMsg(msg.m.Copy(), n)
+				}
 			}
 		}
 	}
@@ -143,14 +141,6 @@ func (n *NetworkNode) Tick() {
 		n.randomizeTimeout()
 		n.sim.onTransceiverEndTransmit(n.id, n.outMessages[0].Copy())
 		n.outMessages = n.outMessages[1:]
-	}
-
-	if len(n.incMessages) > 0 {
-		msg := n.incMessages[0]
-		fmt.Printf("Received message on t for d %v\n", n.deviceEdge.n2.Id())
-		if msg.m.IsLast() {
-			fmt.Printf("Received last message on t for d %v\n", n.deviceEdge.n2.Id())
-		}
 	}
 
 	if n.resetTicks == 0 && !n.transmitting && len(n.incMessages) == 1 {

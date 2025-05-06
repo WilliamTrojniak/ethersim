@@ -61,14 +61,14 @@ func (g *Game) onTransceiverBeginTransmit(id int, msg ethersim.NetworkMsg) {
 func (g *Game) onTransceiverEndTransmit(id int, msg ethersim.NetworkMsg) {
 	g.LogSimEvent(fmt.Sprintf("(T%v) End Msg{val: %v, to: %v, from %v}", id, msg.Value(), msg.Dest(), msg.From()))
 }
-func (g *Game) onCollisionDuringTransmit(id int) {
-	g.LogSimEvent(fmt.Sprintf("(T%v) Jam during transmit", id))
-}
 func (g *Game) onTransceiverJam(id int) {
 	g.LogSimEvent(fmt.Sprintf("(T%v) Detected collision. Jamming", id))
 }
 func (g *Game) onDeviceReceiveMsg(id int, msg ethersim.NetworkMsg) {
-	g.LogSimEvent(fmt.Sprintf("(D%v) Rec Msg{val: %v, to: %v, from: %v}", id, msg.Value(), msg.Dest(), msg.From()))
+	g.LogSimEvent(fmt.Sprintf("(D%v) Recvd Msg{val: %v, to: %v, from: %v}", id, msg.Value(), msg.Dest(), msg.From()))
+}
+func (g *Game) onDeviceQueueMsg(id int, msg ethersim.NetworkMsg) {
+	g.LogSimEvent(fmt.Sprintf("(D%v) Queue Msg{val: %v, to: %v, from: %v}", id, msg.Value(), msg.Dest(), msg.From()))
 }
 
 func loadFont(size float64) (text.Face, error) {
@@ -294,7 +294,7 @@ func (g *Game) getEbitenUI() *ebitenui.UI {
 	)
 
 	controlsLabel := widget.NewText(widget.TextOpts.Text(
-		"[space]: Pause/Play | [n]: New Transceiver | [d]: New Device\n[m]: New Message | [0-9]: Set Active Weight | [t] Tick",
+		"[space]: Pause/Play | [n]: Transceiver | [d]: Device\n[m]: Message | [0-9]: Set Active Weight | [t] Tick",
 		face,
 		color.Black,
 	))
@@ -394,9 +394,9 @@ func MakeGame(sim *ethersim.Simulation) *Game {
 
 	sim.SetTransceiverBeginTransmitCb(g.onTransceiverBeginTransmit)
 	sim.SetTransceiverEndTransmitCb(g.onTransceiverEndTransmit)
-	sim.SetCollisionDuringTransmitCb(g.onCollisionDuringTransmit)
 	sim.SetTransceiverJamCb(g.onTransceiverJam)
 	sim.SetDeviceReceiveMsgCb(g.onDeviceReceiveMsg)
+	sim.SetDeviceQueueMsgCb(g.onDeviceQueueMsg)
 
 	return g
 }
