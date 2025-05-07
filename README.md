@@ -6,6 +6,10 @@ a *broadcast* network and delivered messages with *high probability*.
 The simulation runs in discrete ticks and breaks the simulation down 
 into three main components: *devices, transceivers, and network edges.*
 
+
+https://github.com/user-attachments/assets/5b1373b8-6342-446c-9890-c3e65397e918
+
+
 ## Functionality
 
 - *3.1* Networks have the topology of an unrooted tree
