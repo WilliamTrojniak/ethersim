@@ -3,9 +3,9 @@ package ethergame
 import (
 	"image/color"
 
-	"github.com/WilliamTrojniak/ethersim/ethersim"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/willtrojniak/ethersim/ethersim"
 )
 
 type Edge struct {

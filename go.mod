@@ -1,4 +1,4 @@
-module github.com/WilliamTrojniak/ethersim
+module github.com/willtrojniak/ethersim
 
 go 1.23.0
 

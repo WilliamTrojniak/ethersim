@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
-	"github.com/WilliamTrojniak/ethersim/ethergame"
-	"github.com/WilliamTrojniak/ethersim/ethersim"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/willtrojniak/ethersim/ethergame"
+	"github.com/willtrojniak/ethersim/ethersim"
 )
 
 func main() {

@@ -7,13 +7,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/WilliamTrojniak/ethersim/ethersim"
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/willtrojniak/ethersim/ethersim"
 	"golang.org/x/image/font/gofont/goregular"
 )
 
